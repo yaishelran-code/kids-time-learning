@@ -1,6 +1,17 @@
+import { useEffect, useRef, useState } from 'react';
+import { FullHoursLesson } from './learning/FullHoursLesson';
 import { AnalogClock } from './components/AnalogClock';
 
 export function App() {
+  const [learning, setLearning] = useState(false);
+  const startButton = useRef<HTMLButtonElement>(null);
+  const wasLearning = useRef(false);
+  useEffect(() => {
+    if (wasLearning.current && !learning) startButton.current?.focus();
+    wasLearning.current = learning;
+  }, [learning]);
+  if (learning) return <FullHoursLesson onHome={() => setLearning(false)} />;
+
   return (
     <main className="home">
       <header>
@@ -13,11 +24,7 @@ export function App() {
         <p className="digital-time" dir="ltr" aria-label="השעה שבע">7:00</p>
         <p className="clock-caption">השעה שבע</p>
       </section>
-      <button className="start-button" type="button" onClick={() => {
-        const clock = document.getElementById('clock');
-        clock?.focus({ preventScroll: true });
-        clock?.scrollIntoView({ block: 'center' });
-      }}>התחל ללמוד</button>
+      <button ref={startButton} className="start-button" type="button" onClick={() => setLearning(true)}>התחל ללמוד</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
