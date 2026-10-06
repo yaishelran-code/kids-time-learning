@@ -3,12 +3,17 @@
 A Hebrew, RTL time-learning web application for children aged 7–9.
 The product requirements are in [docs/PRD.md](docs/PRD.md).
 
-## Current scope (Issue #1)
+## Current scope (Issue #4)
 
-React + TypeScript + Vite foundation, a responsive Home screen, and a reusable
-SVG `AnalogClock` showing a static **7:00** with a matching digital display.
-The “התחל ללמוד” entry moves to the clock on the same page. The parent area is
-an explicitly labelled placeholder. There are no additional lessons or features.
+The existing Home screen opens the first full-hour learning screen through
+“התחל ללמוד”. Children can step through paired morning/evening examples of
+7:00, 8:00, and 6:00, go back to an example, repeat, or return Home.
+The SVG and digital displays share one selected hour; the minute hand stays
+at twelve. Hebrew day-period labels and everyday activities explain why the
+same hand positions can mean a different time of day.
+
+Only 12-hour full hours are taught. There is no hand dragging, advanced lesson,
+scoring, login, database, or parent PIN in this issue.
 
 ## Run locally
 
@@ -37,9 +42,10 @@ verification; it is not a production deployment server.
 
 ## Structure
 
-- `src/App.tsx`: Hebrew Home screen
-- `src/components/AnalogClock.tsx`: reusable static SVG clock
+- `src/App.tsx`: Hebrew Home screen and learning entry
+- `src/components/AnalogClock.tsx`: reusable full-hour SVG clock
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
+- `src/learning/`: full-hour examples, lesson screen, and navigation tests
 
 No backend, credentials, external fonts, or third-party services are required.
