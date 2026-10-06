@@ -71,3 +71,12 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 }
 .secondary-button:disabled { opacity: .5; cursor: default; }
 .home-button { margin-top: 20px; }
+.interactive-clock { touch-action: none; user-select: none; }
+.hour-control { cursor: grab; }
+.hour-control:active { cursor: grabbing; }
+.hour-control:focus-visible { outline: none; }
+.hour-control:focus-visible .hour-grip { stroke: #167d87; stroke-width: 5px; }
+.exercise-target { font-size: clamp(1.4rem, 4vw, 1.8rem); font-weight: 700; }
+.exercise-feedback { min-height: 3em; font-weight: 700; }
+.exercise-navigation { margin-top: 20px; }
+.exercise-entry { display: flex; margin: 20px auto 0; }
