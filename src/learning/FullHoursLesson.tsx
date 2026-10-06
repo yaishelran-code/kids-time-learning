@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
+import { FullHoursExercise } from './FullHoursExercise';
 import { examples, hourNames } from './examples';
 
 export function FullHoursLesson({ onHome }: { onHome: () => void }) {
+  const [exercise, setExercise] = useState(false);
   const [index, setIndex] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const example = examples[index];
   const timeLabel = `השעה ${hourNames[example.hour % 12]} ${example.period}`;
 
-  useEffect(() => { heading.current?.focus(); }, []);
+  useEffect(() => { heading.current?.focus(); }, [exercise]);
+  if (exercise) return <FullHoursExercise onLesson={() => setExercise(false)} onHome={onHome} />;
 
   return (
     <main className="home" dir="rtl">
@@ -30,6 +33,7 @@ export function FullHoursLesson({ onHome }: { onHome: () => void }) {
         <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
         <button className="start-button" type="button" onClick={() => setIndex((index + 1) % examples.length)}>{index === examples.length - 1 ? 'נלמד שוב' : 'הדוגמה הבאה'}</button>
       </nav>
+      <button className="start-button exercise-entry" type="button" onClick={() => setExercise(true)}>נתרגל עם המחוג</button>
       <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
     </main>
   );
