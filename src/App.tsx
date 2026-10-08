@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { FullHoursLesson } from './learning/FullHoursLesson';
+import { HalfHoursLesson } from './learning/HalfHoursLesson';
 import { AnalogClock } from './components/AnalogClock';
 
 export function App() {
+  const [halfHours, setHalfHours] = useState(false);
+  const halfHoursButton = useRef<HTMLButtonElement>(null);
+  const wasHalfHours = useRef(false);
+  useEffect(() => {
+    if (wasHalfHours.current && !halfHours) halfHoursButton.current?.focus();
+    wasHalfHours.current = halfHours;
+  }, [halfHours]);
   const [learning, setLearning] = useState(false);
   const startButton = useRef<HTMLButtonElement>(null);
   const wasLearning = useRef(false);
@@ -10,6 +18,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (halfHours) return <HalfHoursLesson onHome={() => setHalfHours(false)} />;
   if (learning) return <FullHoursLesson onHome={() => setLearning(false)} />;
 
   return (
@@ -25,6 +34,7 @@ export function App() {
         <p className="clock-caption">השעה שבע</p>
       </section>
       <button ref={startButton} className="start-button" type="button" onClick={() => setLearning(true)}>התחל ללמוד</button>
+      <button ref={halfHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setHalfHours(true)}>נלמד חצי שעה</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
