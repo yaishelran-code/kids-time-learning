@@ -3,8 +3,8 @@ import { fullHourFromPoint } from '../learning/fullHour';
 
 import { hourNames } from '../learning/examples';
 
-/** Full-hour clock: the minute hand stays at twelve. */
-export function AnalogClock({ hour = 7, onHourChange }: { hour?: number; onHourChange?: (hour: number) => void }) {
+/** Minute-aware display; optional interaction continues to select full hours. */
+export function AnalogClock({ hour = 7, minute = 0, onHourChange }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);
@@ -30,7 +30,7 @@ export function AnalogClock({ hour = 7, onHourChange }: { hour?: number; onHourC
       onPointerUp={event => { if (draggingPointer.current === event.pointerId) updateHour(event); endDrag(event); }} onPointerCancel={endDrag}
       onLostPointerCapture={() => { draggingPointer.current = null; }}>
 
-      <title id={titleId}>{`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}`}</title>
+      <title id={titleId}>{`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
       <circle cx="150" cy="150" r="143" fill="#fff" stroke="#dbe4f1" strokeWidth="8" />
       {Array.from({ length: 60 }, (_, index) => (
         <line key={index} x1="150" y1="18" x2="150" y2={index % 5 === 0 ? '30' : '23'}
@@ -42,9 +42,9 @@ export function AnalogClock({ hour = 7, onHourChange }: { hour?: number; onHourC
         return <text key={hour} x={150 + Math.sin(angle) * 106} y={150 - Math.cos(angle) * 106}
           textAnchor="middle" dominantBaseline="central" fill="#243450" fontSize="24" fontWeight="700">{hour}</text>;
       })}
-      <line data-hand="hour" x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30} 150 150)`}
+      <line data-hand="hour" x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
         stroke="#7357c8" strokeWidth="12" strokeLinecap="round" />
-      <line data-hand="minute" x1="150" y1="150" x2="150" y2="60"
+      <line data-hand="minute" transform={minute === 0 ? undefined : `rotate(${minute * 6} 150 150)`} x1="150" y1="150" x2="150" y2="60"
         stroke="#167d87" strokeWidth="8" strokeLinecap="round" />
       <circle cx="150" cy="150" r="9" fill="#243450" />
       {onHourChange && <g className="hour-control" role="slider" tabIndex={0}
@@ -68,9 +68,9 @@ export function AnalogClock({ hour = 7, onHourChange }: { hour?: number; onHourC
           event.preventDefault();
           onHourChange(next);
         }}>
-        <line x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30} 150 150)`}
+        <line x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
           stroke="transparent" strokeWidth="52" strokeLinecap="round" />
-        <circle className="hour-grip" cx="150" cy="78" r="12" transform={`rotate(${(hour % 12) * 30} 150 150)`}
+        <circle className="hour-grip" cx="150" cy="78" r="12" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
           fill="#7357c8" stroke="#fff" strokeWidth="3" />
       </g>}
 
