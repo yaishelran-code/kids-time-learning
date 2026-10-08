@@ -32,7 +32,10 @@ function setHour(hour: number) {
 }
 function checkClock(hour: number) {
   expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuenow')).toBe(String(hour));
-  expect(container.querySelector('.digital-time')?.textContent).toBe(`${hour}:00`);
+  expect(container.querySelector('.digital-time')).toBeNull();
+  expect(container.textContent?.match(/\b\d{1,2}:00\b/g)).toEqual([
+    container.querySelector('.exercise-target bdi')?.textContent,
+  ]);
   expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30} 150 150)`);
   const minute = container.querySelector('[data-hand="minute"]')!;
   expect(minute.getAttribute('x1')).toBe(minute.getAttribute('x2'));

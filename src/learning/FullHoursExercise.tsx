@@ -48,7 +48,6 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
       </header>
       <section ref={clockCard} className="clock-card" aria-label="השעון שלכם">
         <AnalogClock hour={hour} onHourChange={value => { setHour(value); setFeedback('idle'); }} />
-        <p className="digital-time" dir="ltr" aria-label="השעה שבחרתם">{hour}:00</p>
         <p className="clock-caption">אפשר גם לבחור במחוג ולהשתמש במקשי החצים.</p>
       </section>
       <p className="exercise-feedback" role="status" aria-live="polite">
