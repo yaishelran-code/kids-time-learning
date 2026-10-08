@@ -80,3 +80,6 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 .exercise-feedback { min-height: 3em; font-weight: 700; }
 .exercise-navigation { margin-top: 20px; }
 .exercise-entry { display: flex; margin: 20px auto 0; }
+.reading-answers > button { flex: 1 1 100px; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.reading-answers button[aria-pressed="true"] { border-color: #167d87; background: #e5f5f4; }
+.reading-answers button:disabled { opacity: 1; cursor: default; }
