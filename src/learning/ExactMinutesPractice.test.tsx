@@ -56,7 +56,6 @@ describe('exact-minute practice', () => {
     const starts: number[] = [];
     const distances: number[] = [];
     let firstStart = 0;
-    const minuteDistances: number[] = [];
     for (const [index,target] of exactMinutesExercises[mode].entries()) {
       expect(container.textContent).toContain(`תרגיל ${index+1} מתוך ${exactMinutesExercises[mode].length}`);
       expect(document.activeElement).toBe(container.querySelector('h1'));
@@ -85,15 +84,21 @@ describe('exact-minute practice', () => {
         const labels = choices.map(el => el.textContent!);
         expect(new Set(labels).size).toBe(3);
         expect(labels.filter(label => label === formatTime(target))).toHaveLength(1);
+        // Compare complete proposed times on the 12-hour cycle, including distractor pairs.
+        const totals = labels.map(label => {
+          const [hour, minute] = label.split(':').map(Number);
+          return hour % 12 * 60 + minute;
+        });
+        for (let a = 0; a < totals.length; a++) for (let b = a + 1; b < totals.length; b++) {
+          const difference = Math.abs(totals[a] - totals[b]);
+          expect(Math.min(difference, 720 - difference)).toBeGreaterThanOrEqual(7);
+        }
         positions.push(labels.indexOf(formatTime(target)));
         for(const choice of choices) expect(choice.querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
         click(labels.find(label => label !== formatTime(target))!);click('בדיקה');expect(status()).toBe('כמעט! נסו שוב');
         const wrongTimes = labels.filter(label => label !== formatTime(target));
         expect(wrongTimes.some(label => label.split(':')[0] === String(target.hour))).toBe(true);
         expect(wrongTimes.some(label => label.split(':')[1] === String(target.minute).padStart(2, '0'))).toBe(true);
-        const minuteChoice = wrongTimes.find(label => label.split(':')[0] === String(target.hour))!;
-        const difference = Math.abs(Number(minuteChoice.split(':')[1]) - target.minute);
-        minuteDistances.push(Math.min(difference, 60 - difference));
         click(formatTime(target));expect(status()).toBe('');
       }
       expect(container.textContent).not.toContain('התרגיל הבא');
@@ -109,8 +114,6 @@ describe('exact-minute practice', () => {
     }
     if(mode !== 'setting') {
       expect(new Set(positions).size).toBe(3);
-      expect(minuteDistances).toContain(1);
-      expect(minuteDistances.some(n => n > 1)).toBe(true);
     }
     if(mode !== 'reading') {
       expect(new Set(starts).size).toBeGreaterThan(3);
@@ -188,7 +191,7 @@ describe('exact-minute practice', () => {
   });
   it.each(['setting', 'reading', 'mixed'] as const)('returns home during %s and starts a fresh practice on reentry', mode => {
     open(mode);
-    if (mode === 'reading') { click('8:02'); click('בדיקה'); }
+    if (mode === 'reading') { click('8:11'); click('בדיקה'); }
     else { key('ArrowLeft'); click('בדיקה'); }
     expect(status()).toBe('כמעט! נסו שוב');
     click('חזרה ללימוד'); hands(8, 1);

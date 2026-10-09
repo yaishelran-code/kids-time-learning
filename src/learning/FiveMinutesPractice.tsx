@@ -58,8 +58,9 @@ export function FiveMinutesPractice({ mode, onLesson, onHome }: { mode: FiveMinu
   const nextButton = useRef<HTMLButtonElement>(null);
   const target = fiveMinutesExercises[mode][index];
   const answer = formatTime(target);
+  // A ten-minute offset keeps every pair at least seven minutes apart, including wraparound.
   const choices: ClockTime[] = [target,
-    { hour: target.hour, minute: (target.minute + 5) % 60 as ClockTime['minute'] },
+    { hour: target.hour, minute: (target.minute + 10) % 60 as ClockTime['minute'] },
     { hour: target.hour % 12 + 1, minute: target.minute }];
   const readingIndex = fiveMinutesExercises[mode].slice(0, index).filter(exercise => exercise.kind === 'reading').length;
   const answers = choices.map((_, offset) => choices[(offset + readingIndex) % 3]);
