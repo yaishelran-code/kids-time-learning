@@ -49,7 +49,8 @@ Hebrew RTL layout; digital times remain LTR.
   lesson. Setting uses mouse/touch dragging or keyboard arrows in five-minute
   steps, with varied starting times, directions and distances. Both hands stay
   synchronized across twelve; current digital selection stays hidden. Reading
-  offers three distinct, rotating choices with minute/hour distractors. “בדיקה”
+  offers three distinct, rotating choices with minute/hour distractors, each pair
+  at least seven minutes apart on the 12-hour cycle (Issue #30). “בדיקה”
   checks the answer; friendly retries reveal no solution, edits clear feedback,
   and correct answers lock until “התרגיל הבא”. Each mode shows progress,
   completion, restart, return to the selected lesson example and Home.
@@ -78,7 +79,8 @@ Hebrew RTL layout; digital times remain LTR.
   minute ticks and a wider minute-hand grab area; earlier practice keeps its
   original appearance and full/half/quarter/five-minute snapping rules.
   The current digital selection stays hidden. Reading offers three distinct,
-  rotating choices testing adjacent-minute, several-minute and hour confusion.
+  rotating choices testing minute and hour confusion, with at least seven minutes
+  between every pair of full proposed times on the 12-hour cycle (Issue #30).
   Explicit checking, friendly retries without revealing the answer, clearing
   feedback on edits, correct-answer locking, progress, completion and restart
   follow the existing patterns. Return to learning preserves the selected example
@@ -146,6 +148,26 @@ passed on desktop and the narrow phone viewport. Desktop, phone and narrow-phone
 screenshots were visually inspected for minute-tick readability and layout.
 Phone/tablet checks use Chromium emulation; physical iOS/Android devices,
 Safari/WebKit, Firefox and screen-reader announcements were not verified.
+
+Issue #30 replaces the earlier adjacent-minute answer-distractor requirement;
+exact displayed times and one-minute setting practice remain unchanged. Both
+five-minute and exact-minute reading modes, including reading questions in their
+mixed practice, require `min(abs(a-b), 720-abs(a-b)) >= 7` for every answer pair,
+where `a` and `b` are complete times converted to minutes on a 12-hour cycle.
+Minute distractors now use ten-minute offsets in five-minute practice and varied
+ten/fifteen-minute offsets in exact-minute practice; hour distractors and correct
+answer rotation remain. Existing tests scan all 44 reading questions and all 132
+answer pairs, including beginning/end-of-hour, twelve and full-hour cases.
+All 96 automated tests, TypeScript, production build and whitespace checks passed.
+Production-preview Chromium checks passed at 1280×900, 390×844 and 320×568:
+each size checked all 44 reading questions/132 pairs, with an observed minimum
+distance of ten minutes, one unique correct answer, unchanged hand angles,
+retries, feedback clearing, locking, progression, completion, restart, lesson
+preservation, RTL/LTR and no horizontal overflow or browser errors. Setting
+questions in both mixed sequences were completed using browser mouse input or
+CDP-emulated touch. Desktop and phone boundary-case screenshots were inspected.
+These checks use Chromium emulation; physical devices, Safari/WebKit, Firefox
+and screen-reader announcements were not verified.
 
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.

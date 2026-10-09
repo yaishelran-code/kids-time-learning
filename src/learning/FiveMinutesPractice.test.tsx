@@ -75,6 +75,15 @@ describe('five-minute practice', () => {
         const labels = choices.map(el => el.textContent!);
         expect(new Set(labels).size).toBe(3);
         expect(labels.filter(label => label === formatTime(target))).toHaveLength(1);
+        // Compare complete proposed times on the 12-hour cycle, including distractor pairs.
+        const totals = labels.map(label => {
+          const [hour, minute] = label.split(':').map(Number);
+          return hour % 12 * 60 + minute;
+        });
+        for (let a = 0; a < totals.length; a++) for (let b = a + 1; b < totals.length; b++) {
+          const difference = Math.abs(totals[a] - totals[b]);
+          expect(Math.min(difference, 720 - difference)).toBeGreaterThanOrEqual(7);
+        }
         positions.push(labels.indexOf(formatTime(target)));
         for(const choice of choices) expect(choice.querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
         click(labels.find(label => label !== formatTime(target))!);click('בדיקה');expect(status()).toBe('כמעט! נסו שוב');
@@ -165,7 +174,7 @@ describe('five-minute practice', () => {
   });
   it.each(['setting', 'reading', 'mixed'] as const)('returns home during %s and starts a fresh practice on reentry', mode => {
     open(mode);
-    if (mode === 'reading') { click('12:10'); click('בדיקה'); }
+    if (mode === 'reading') { click('12:15'); click('בדיקה'); }
     else { key('ArrowLeft'); click('בדיקה'); }
     expect(status()).toBe('כמעט! נסו שוב');
     click('חזרה ללימוד'); hands(8, 5);

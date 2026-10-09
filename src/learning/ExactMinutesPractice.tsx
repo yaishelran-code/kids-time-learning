@@ -60,8 +60,8 @@ export function ExactMinutesPractice({ mode, onLesson, onHome }: { mode: ExactMi
   const nextButton = useRef<HTMLButtonElement>(null);
   const target = exactMinutesExercises[mode][index];
   const answer = formatTime(target);
-  // Alternate adjacent-minute and several-minute confusion; keep an hour distractor.
-  const minuteOffset = [1, -1, 3, -4][index % 4];
+  // Space every pair at least seven minutes apart; keep varied minute and hour distractors.
+  const minuteOffset = [10, -10, 15, -15][index % 4];
   const choices: ClockTime[] = [target,
     { hour: target.hour, minute: (target.minute + minuteOffset + 60) % 60 },
     { hour: target.hour % 12 + 1, minute: target.minute }];
