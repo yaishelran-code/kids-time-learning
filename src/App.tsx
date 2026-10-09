@@ -3,9 +3,17 @@ import { FullHoursLesson } from './learning/FullHoursLesson';
 import { HalfHoursLesson } from './learning/HalfHoursLesson';
 import { QuarterHoursLesson } from './learning/QuarterHoursLesson';
 import { FiveMinutesLesson } from './learning/FiveMinutesLesson';
+import { ExactMinutesLesson } from './learning/ExactMinutesLesson';
 import { AnalogClock } from './components/AnalogClock';
 
 export function App() {
+  const [exactMinutes, setExactMinutes] = useState(false);
+  const exactMinutesButton = useRef<HTMLButtonElement>(null);
+  const wasExactMinutes = useRef(false);
+  useEffect(() => {
+    if (wasExactMinutes.current && !exactMinutes) exactMinutesButton.current?.focus();
+    wasExactMinutes.current = exactMinutes;
+  }, [exactMinutes]);
   const [minutes, setMinutes] = useState(false);
   const minutesButton = useRef<HTMLButtonElement>(null);
   const wasMinutes = useRef(false);
@@ -34,6 +42,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (exactMinutes) return <ExactMinutesLesson onHome={() => setExactMinutes(false)} />;
   if (minutes) return <FiveMinutesLesson onHome={() => setMinutes(false)} />;
   if (quarterHours) return <QuarterHoursLesson onHome={() => setQuarterHours(false)} />;
   if (halfHours) return <HalfHoursLesson onHome={() => setHalfHours(false)} />;
@@ -55,6 +64,7 @@ export function App() {
       <button ref={halfHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setHalfHours(true)}>נלמד חצי שעה</button>
       <button ref={quarterHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setQuarterHours(true)}>לימוד רבע שעה</button>
       <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)}>לימוד דקות</button>
+      <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)}>לימוד דקות מדויקות</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
