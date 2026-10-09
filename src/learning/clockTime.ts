@@ -1,5 +1,6 @@
-export type ClockTime = { hour: number; minute: 0 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50 | 55 };
-export function timeFromMinutes(total: number, step: 5 | 15 | 30 = 30): ClockTime {
+/** Minute values produced by timeFromMinutes are integers from 0 through 59. */
+export type ClockTime = { hour: number; minute: number };
+export function timeFromMinutes(total: number, step: 1 | 5 | 15 | 30 = 30): ClockTime {
   const normalized = ((Math.round(total / step) * step) % 720 + 720) % 720;
   return { hour: Math.floor(normalized / 60) || 12, minute: normalized % 60 as ClockTime['minute'] };
 }

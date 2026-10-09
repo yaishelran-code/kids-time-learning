@@ -66,7 +66,7 @@ describe('exact-minute lesson', () => {
     expect(container.textContent).toContain('בין שני סימונים קטנים עוברת דקה אחת');
     expect(container.textContent).toContain('חמישה צעדים של דקה');
     for (const caption of container.querySelectorAll('.clock-caption, figcaption')) expect(caption.textContent).not.toMatch(/לתשע|לאחת/);
-    expect(container.textContent).not.toContain('תרגול');
+    expect(container.querySelectorAll('.exercise-navigation button')).toHaveLength(3);
     click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
     expect(container.querySelector('[data-minute-marker]')).toBeNull();
     click('לימוד דקות מדויקות'); hands(container.querySelector('.clock-card')!, 8, 0);

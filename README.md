@@ -66,9 +66,27 @@ Hebrew RTL layout; digital times remain LTR.
   focus and navigation patterns. Practice interactions and snapping are unchanged;
   the broader navigation review remains in Issue #24.
 
+- Exact-minute practice (Issue #28): twelve setting and twelve reading exercises,
+  plus twenty mixed exercises reviewing full, half, quarter and five-minute times.
+  Twelve of the mixed exercises use minutes that are not multiples of five,
+  split evenly between setting and reading. Fixed sequences include adjacent
+  minutes, 8:01/8:07/8:23/8:37/8:58/8:59 and 12:01/12:59, with other hours.
+  Three entries in the exact-minute lesson reuse the existing practice flow.
+  Mouse/touch dragging and keyboard arrows snap to one minute; both hands stay
+  synchronized through twelve in both directions. Varied starting times require
+  different solution directions and distances. Exact-minute practice uses stronger
+  minute ticks and a wider minute-hand grab area; earlier practice keeps its
+  original appearance and full/half/quarter/five-minute snapping rules.
+  The current digital selection stays hidden. Reading offers three distinct,
+  rotating choices testing adjacent-minute, several-minute and hour confusion.
+  Explicit checking, friendly retries without revealing the answer, clearing
+  feedback on edits, correct-answer locking, progress, completion and restart
+  follow the existing patterns. Return to learning preserves the selected example
+  and restores focus; return Home is available throughout. Hebrew wording includes
+  “דקה אחת”, with RTL text and LTR digital times. Issues #24 and #27 remain separate.
+
 Later-stage relative-time terminology is not added.
-There is no exact-minute practice or 24-hour teaching, scoring, login, database,
-audio or parent PIN yet.
+There is no 24-hour teaching, scoring, login, database, audio or parent PIN yet.
 
 ## Run locally
 
@@ -112,15 +130,32 @@ and rollover were checked, and desktop/narrow-phone screenshots were inspected.
 These checks use emulation, not physical devices; Safari/WebKit and screen-reader
 announcements were not verified.
 
+Issue #28 verification passed all 96 automated tests across 12 files, TypeScript,
+production build and `git diff --check`. New tests cover all three practice modes,
+all 720 one-minute keyboard positions, fractional snapping boundaries, forward/
+reverse rollover, mouse/touch pointer handling, retries, locking, completion,
+reset, navigation and original snapping regressions. Production-preview Chromium
+verification completed all 44 exercises at 1280×900, 390×844, 844×390, 768×1024,
+1024×768 and 320×568. Real browser mouse input and CDP-emulated touch input
+verified adjacent-minute changes (including 8:06 ↔ 8:07), 12:59 ↔ 1:00 and
+11:59 ↔ 12:00, continuous forward/reverse rollover and no scrolling during drag.
+Every size passed retries, locking, reset, selected lesson preservation, RTL/LTR,
+touch-target size, horizontal overflow, earlier snapping and browser error checks.
+Tab/Enter navigation, one-minute keyboard arrows and visible slider/button focus
+passed on desktop and the narrow phone viewport. Desktop, phone and narrow-phone
+screenshots were visually inspected for minute-tick readability and layout.
+Phone/tablet checks use Chromium emulation; physical iOS/Android devices,
+Safari/WebKit, Firefox and screen-reader announcements were not verified.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
 ## Structure
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
-- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five-minute interaction
+- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
