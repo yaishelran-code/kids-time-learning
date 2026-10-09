@@ -40,8 +40,20 @@ Hebrew RTL layout; digital times remain LTR.
   Three clocks compare 8:05, 8:10 and 8:15. Hebrew minute wording and links
   to quarter/half/three-quarter hours accompany the visible digital time.
   Previous/next navigation shows example progress and focuses its heading;
-  Home restores focus to the entry. No minutes practice is added, and all
-  existing practice snapping rules remain unchanged.
+  Home restores focus to the entry.
+
+- Five-minute practice (Issue #22): twelve setting and twelve reading exercises
+  cover :05/:10/:20/:25/:35/:40/:50/:55, including 12:05 and 12:55. Twenty
+  mixed exercises revisit full, half and quarter hours and cover every new
+  minute value in both setting and reading. The three entries are in the minutes
+  lesson. Setting uses mouse/touch dragging or keyboard arrows in five-minute
+  steps, with varied starting times, directions and distances. Both hands stay
+  synchronized across twelve; current digital selection stays hidden. Reading
+  offers three distinct, rotating choices with minute/hour distractors. “בדיקה”
+  checks the answer; friendly retries reveal no solution, edits clear feedback,
+  and correct answers lock until “התרגיל הבא”. Each mode shows progress,
+  completion, restart, return to the selected lesson example and Home.
+  Existing full/half/quarter-hour practice keeps its original snapping rules.
 
 Later-stage relative-time terminology is not added.
 There is no arbitrary-minute or 24-hour teaching, scoring, login, database,
@@ -69,15 +81,24 @@ npm run build
 npm run preview -- --host 0.0.0.0
 ```
 
+Issue #22 browser verification used the production preview in Chromium at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. All three
+practice sequences were completed at every size, including retries, locking,
+restart, selected lesson preservation, touch targets and horizontal overflow
+checks. Mouse and emulated touch drags crossed twelve in both directions
+without scrolling the page; keyboard Tab/Enter navigation and existing practice
+snapping were also checked. Emulation does not verify physical iOS/Android
+devices, Safari/WebKit, or screen-reader announcements.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
 ## Structure
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
-- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter-hour interaction
+- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five-minute interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
