@@ -6,7 +6,7 @@ import { angleDelta, formatTime, minuteAngleFromPoint, minutesFromTime, timeFrom
 import { hourNames } from '../learning/examples';
 
 /** Each interaction mode keeps both hands tied to a single time. */
-export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 15 | 30; showMinuteLabels?: boolean; timeDescription?: string }) {
+export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 5 | 15 | 30; showMinuteLabels?: boolean; timeDescription?: string }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);

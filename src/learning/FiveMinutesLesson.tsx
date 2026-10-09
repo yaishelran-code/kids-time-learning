@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
+import { FiveMinutesPractice, fiveMinutesPracticeTitles, type FiveMinutesPracticeMode } from './FiveMinutesPractice';
 
 const examples = [
   ...Array.from({ length: 13 }, (_, index) => ({ hour: index === 12 ? 9 : 8, minute: index === 12 ? 0 : index * 5 })),
@@ -20,9 +21,17 @@ function digitalTime(hour: number, minute: number) {
 
 export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const [practice, setPractice] = useState<FiveMinutesPracticeMode | null>(null);
+  const previousPractice = useRef<FiveMinutesPracticeMode | null>(null);
+  const entries = useRef<Partial<Record<FiveMinutesPracticeMode, HTMLButtonElement | null>>>({});
   const [showMinuteLabels, setShowMinuteLabels] = useState(false);
   const exampleHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { exampleHeading.current?.focus(); }, [index]);
+  useEffect(() => {
+    if (previousPractice.current && !practice) entries.current[previousPractice.current]?.focus();
+    previousPractice.current = practice;
+  }, [practice]);
+  if (practice) return <FiveMinutesPractice key={practice} mode={practice} onLesson={() => setPractice(null)} onHome={onHome} />;
   const { hour, minute } = examples[index];
   const label = spokenTime(hour, minute);
   const connection = minute === 15 ? 'רבע שעה' : minute === 30 ? 'חצי שעה' : minute === 45 ? 'שלושה רבעים של שעה' : '';
@@ -67,6 +76,11 @@ export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
       </div>
       <p>משמונה וחמש דקות לשמונה ועשר דקות עברו 5 דקות. משמונה ועשר דקות לשמונה וחמש עשרה דקות עברו עוד 5 דקות.</p>
     </section>
+    <nav className="lesson-controls exercise-navigation" aria-label="תרגול דקות">
+      {(Object.keys(fiveMinutesPracticeTitles) as FiveMinutesPracticeMode[]).map(mode => <button key={mode}
+        ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
+        onClick={() => setPractice(mode)}>{fiveMinutesPracticeTitles[mode]}</button>)}
+    </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;
 }
