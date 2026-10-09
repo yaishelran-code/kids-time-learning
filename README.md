@@ -3,25 +3,29 @@
 A Hebrew, RTL time-learning web application for children aged 7–9.
 The product requirements are in [docs/PRD.md](docs/PRD.md).
 
-## Current scope (Issues #4 and #6)
+## Current scope
 
-The existing Home screen opens the first full-hour learning screen through
-“התחל ללמוד”. Children can step through paired morning/evening examples of
-7:00, 8:00, and 6:00, go back to an example, repeat, or return Home.
-The SVG and digital displays share one selected hour; the minute hand stays
-at twelve. Hebrew day-period labels and everyday activities explain why the
-same hand positions can mean a different time of day.
+Home offers full-hour learning, half-hour learning, and **לימוד רבע שעה**.
+All lessons pair a read-only analog clock with a visible digital time in a
+Hebrew RTL layout; digital times remain LTR.
 
-“נתרגל עם המחוג” opens Learning Step 2 from the lesson. Drag the short hour
-hand using a mouse or touch; it snaps to all twelve positions while the minute
-hand stays fixed at twelve. The selected digital hour updates with the hand.
-The focused hour hand also supports arrow keys, Home (1), and End (12).
-Exercises include 6:00, 7:00 in both morning and evening, 8:00, 10:00, and 12:00.
-“בדיקה” gives friendly feedback; incorrect answers can be retried and correct
-answers unlock “התרגיל הבא”. Return to the lesson preserves its selected example.
+- Full hours: paired morning/evening examples of 7:00, 8:00 and 6:00,
+  setting practice with a draggable hour hand, and clock-reading practice.
+  The hour hand supports arrow keys, Home and End.
+- Half hours: comparisons of :00 and :30 for 7, 8, 11 and 12, plus setting,
+  reading and mixed full/half-hour practice. In setting practice the minute
+  hand snaps to :00/:30 and both hands advance together, including across 12.
+  Answers receive friendly feedback, retries and a completion screen.
+- Quarter hours (Issue #16): a teaching-only sequence of 7:00, 7:15, 7:30,
+  7:45, 12:15 and 12:45. A side-by-side comparison shows both hands advancing
+  every 15 minutes. The lesson explains a quarter hour, uses שבע ורבע and
+  שבע ארבעים וחמש, and provides previous/next examples and return Home.
+  Example navigation moves focus to the example heading; returning Home
+  restores focus to the lesson entry.
 
-Only 12-hour full hours are taught. There are no movable minutes, advanced
-lessons, scoring, login, database, audio, or parent PIN in these issues.
+Quarter-hour practice and later-stage relative-time terminology are not added.
+There is no arbitrary-minute or 24-hour teaching, scoring, login, database,
+audio or parent PIN yet.
 
 ## Run locally
 
@@ -51,9 +55,9 @@ verification; it is not a production deployment server.
 ## Structure
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
-- `src/components/AnalogClock.tsx`: reusable full-hour SVG clock
+- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half-hour interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour examples, lesson and exercise screens, snapping geometry, and interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, the quarter-hour lesson, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
