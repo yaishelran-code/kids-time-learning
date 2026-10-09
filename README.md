@@ -5,7 +5,7 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, and **לימוד רבע שעה**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, and **לימוד דקות**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
 
@@ -32,6 +32,16 @@ Hebrew RTL layout; digital times remain LTR.
   Incorrect attempts can be retried; changing the selection clears feedback.
   Correct answers lock until the next exercise. Each mode shows progress,
   a completion screen, restart, return to the selected lesson example and Home.
+
+- Five-minute lesson (Issue #20): a display-only sequence from 8:00 to 9:00
+  in five-minute steps, followed by 12:05 and 12:55. Optional minute labels
+  sit beside the hour numbers; a mapping explains 1 = 5 through 11 = 55,
+  and 12 = 60 elapsed minutes with a new hour and minutes resetting to 00.
+  Three clocks compare 8:05, 8:10 and 8:15. Hebrew minute wording and links
+  to quarter/half/three-quarter hours accompany the visible digital time.
+  Previous/next navigation shows example progress and focuses its heading;
+  Home restores focus to the entry. No minutes practice is added, and all
+  existing practice snapping rules remain unchanged.
 
 Later-stage relative-time terminology is not added.
 There is no arbitrary-minute or 24-hour teaching, scoring, login, database,
@@ -68,6 +78,6 @@ verification; it is not a production deployment server.
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter-hour interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.

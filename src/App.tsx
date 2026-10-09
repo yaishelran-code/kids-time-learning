@@ -2,9 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { FullHoursLesson } from './learning/FullHoursLesson';
 import { HalfHoursLesson } from './learning/HalfHoursLesson';
 import { QuarterHoursLesson } from './learning/QuarterHoursLesson';
+import { FiveMinutesLesson } from './learning/FiveMinutesLesson';
 import { AnalogClock } from './components/AnalogClock';
 
 export function App() {
+  const [minutes, setMinutes] = useState(false);
+  const minutesButton = useRef<HTMLButtonElement>(null);
+  const wasMinutes = useRef(false);
+  useEffect(() => {
+    if (wasMinutes.current && !minutes) minutesButton.current?.focus();
+    wasMinutes.current = minutes;
+  }, [minutes]);
   const [quarterHours, setQuarterHours] = useState(false);
   const quarterHoursButton = useRef<HTMLButtonElement>(null);
   const wasQuarterHours = useRef(false);
@@ -26,6 +34,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (minutes) return <FiveMinutesLesson onHome={() => setMinutes(false)} />;
   if (quarterHours) return <QuarterHoursLesson onHome={() => setQuarterHours(false)} />;
   if (halfHours) return <HalfHoursLesson onHome={() => setHalfHours(false)} />;
   if (learning) return <FullHoursLesson onHome={() => setLearning(false)} />;
@@ -45,6 +54,7 @@ export function App() {
       <button ref={startButton} className="start-button" type="button" onClick={() => setLearning(true)}>התחל ללמוד</button>
       <button ref={halfHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setHalfHours(true)}>נלמד חצי שעה</button>
       <button ref={quarterHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setQuarterHours(true)}>לימוד רבע שעה</button>
+      <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)}>לימוד דקות</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
