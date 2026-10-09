@@ -6,7 +6,7 @@ import { angleDelta, formatTime, minuteAngleFromPoint, minutesFromTime, timeFrom
 import { hourNames } from '../learning/examples';
 
 /** Each interaction mode keeps both hands tied to a single time. */
-export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30 }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 15 | 30 }) {
+export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 15 | 30; showMinuteLabels?: boolean; timeDescription?: string }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);
@@ -65,7 +65,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
       onPointerUp={event => { if (draggingPointer.current === event.pointerId) updateDrag(event); endDrag(event); }} onPointerCancel={endDrag}
       onLostPointerCapture={() => { draggingPointer.current = null; }}>
 
-      <title id={titleId}>{`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 45 ? " ארבעים וחמש" : minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
+      <title id={titleId}>{timeDescription ?? `שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 45 ? " ארבעים וחמש" : minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
       <circle cx="150" cy="150" r="143" fill="#fff" stroke="#dbe4f1" strokeWidth="8" />
       {Array.from({ length: 60 }, (_, index) => (
         <line key={index} x1="150" y1="18" x2="150" y2={index % 5 === 0 ? '30' : '23'}
@@ -76,6 +76,12 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
         const angle = hour * Math.PI / 6;
         return <text key={hour} x={150 + Math.sin(angle) * 106} y={150 - Math.cos(angle) * 106}
           textAnchor="middle" dominantBaseline="central" fill="#243450" fontSize="24" fontWeight="700">{hour}</text>;
+      })}
+      {showMinuteLabels && Array.from({ length: 12 }, (_, index) => {
+        const number = index + 1;
+        const angle = number * Math.PI / 6;
+        return <text key={number} data-minute-label={number} x={150 + Math.sin(angle) * 128} y={150 - Math.cos(angle) * 128}
+          textAnchor="middle" dominantBaseline="central" fill="#167d87" fontSize="12" fontWeight="700">{number === 12 ? '60/00' : number * 5}</text>;
       })}
       <line data-hand="hour" x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
         stroke="#7357c8" strokeWidth="12" strokeLinecap="round" />
