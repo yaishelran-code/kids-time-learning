@@ -6,7 +6,7 @@ import { angleDelta, formatTime, minuteAngleFromPoint, minutesFromTime, timeFrom
 import { hourNames } from '../learning/examples';
 
 /** Each interaction mode keeps both hands tied to a single time. */
-export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, highlightMinute = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 5 | 15 | 30; showMinuteLabels?: boolean; highlightMinute?: boolean; timeDescription?: string }) {
+export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, emphasizeMinuteTicks = false, highlightMinute = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 1 | 5 | 15 | 30; showMinuteLabels?: boolean; emphasizeMinuteTicks?: boolean; highlightMinute?: boolean; timeDescription?: string }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);
@@ -65,11 +65,11 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
       onPointerUp={event => { if (draggingPointer.current === event.pointerId) updateDrag(event); endDrag(event); }} onPointerCancel={endDrag}
       onLostPointerCapture={() => { draggingPointer.current = null; }}>
 
-      <title id={titleId}>{timeDescription ?? `שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 45 ? " ארבעים וחמש" : minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
+      <title id={titleId}>{timeDescription ?? `שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 45 ? " ארבעים וחמש" : minute === 30 ? " וחצי" : minute === 0 ? "" : minute === 1 ? " ודקה אחת" : ` ו־${minute} דקות`}`}</title>
       <circle cx="150" cy="150" r="143" fill="#fff" stroke="#dbe4f1" strokeWidth="8" />
       {Array.from({ length: 60 }, (_, index) => (
         <line key={index} x1="150" y1="18" x2="150" y2={index % 5 === 0 ? '30' : '23'}
-          transform={`rotate(${index * 6} 150 150)`} stroke="#b6c4d8" strokeWidth={index % 5 === 0 ? 3 : 1.5} />
+          transform={`rotate(${index * 6} 150 150)`} stroke={emphasizeMinuteTicks ? '#53647c' : '#b6c4d8'} strokeWidth={index % 5 === 0 ? 3 : emphasizeMinuteTicks ? 2.5 : 1.5} />
       ))}
       {highlightMinute && <g data-minute-marker={minute} transform={`rotate(${minute * 6} 150 150)`}>
         <circle cx="150" cy="21" r="7" fill="#fff" stroke="#243450" strokeWidth="3" />
@@ -143,7 +143,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
           onTimeChange(timeFromMinutes(next, minuteStep));
         }}>
         <line x1="150" y1="150" x2="150" y2="60" transform={`rotate(${minute * 6} 150 150)`}
-          stroke="transparent" strokeWidth="52" strokeLinecap="round" />
+          stroke="transparent" strokeWidth={minuteStep === 1 ? 60 : 52} strokeLinecap="round" />
         <circle className="hour-grip" cx="150" cy="60" r="12" transform={`rotate(${minute * 6} 150 150)`}
           fill="#167d87" stroke="#fff" strokeWidth="3" />
       </g>}

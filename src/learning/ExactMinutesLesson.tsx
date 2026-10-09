@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
+import { ExactMinutesPractice, exactMinutesPracticeTitles, type ExactMinutesPracticeMode } from './ExactMinutesPractice';
 
 const examples = [
   { hour: 8, minute: 0 }, { hour: 8, minute: 1 }, { hour: 8, minute: 4 },
@@ -31,8 +32,16 @@ function explanation(hour: number, minute: number) {
 
 export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const [practice, setPractice] = useState<ExactMinutesPracticeMode | null>(null);
+  const previousPractice = useRef<ExactMinutesPracticeMode | null>(null);
+  const entries = useRef<Partial<Record<ExactMinutesPracticeMode, HTMLButtonElement | null>>>({});
   const exampleHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { exampleHeading.current?.focus(); }, [index]);
+  useEffect(() => {
+    if (previousPractice.current && !practice) entries.current[previousPractice.current]?.focus();
+    previousPractice.current = practice;
+  }, [practice]);
+  if (practice) return <ExactMinutesPractice key={practice} mode={practice} onLesson={() => setPractice(null)} onHome={onHome} />;
   const { hour, minute } = examples[index];
   const label = spokenTime(hour, minute);
   return <main className="home" dir="rtl">
@@ -75,6 +84,11 @@ export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
       </div>
       <p>אחרי 58 דקות מגיעות 59 דקות. אחרי עוד דקה עברו 60 דקות מאז שמונה: המחוג הארוך חוזר ל־12, הדקות חוזרות ל־00 והמחוג הקצר מגיע ל־9.</p>
     </section>
+    <nav className="lesson-controls exercise-navigation" aria-label="תרגול דקות מדויקות">
+      {(Object.keys(exactMinutesPracticeTitles) as ExactMinutesPracticeMode[]).map(mode => <button key={mode}
+        ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
+        onClick={() => setPractice(mode)}>{exactMinutesPracticeTitles[mode]}</button>)}
+    </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;
 }
