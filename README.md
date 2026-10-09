@@ -5,7 +5,7 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, and **לימוד דקות**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, and **לימוד דקות מדויקות**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
 
@@ -55,8 +55,19 @@ Hebrew RTL layout; digital times remain LTR.
   completion, restart, return to the selected lesson example and Home.
   Existing full/half/quarter-hour practice keeps its original snapping rules.
 
+- Exact-minute lesson (Issue #25): fifteen display-only examples in order:
+  8:00, 8:01, 8:04, 8:05, 8:06, 8:07, 8:09, 8:10, 8:23, 8:37,
+  8:58, 8:59, 9:00, 12:01 and 12:59. Each pairs accurate hands with visible
+  digital time, accessible Hebrew wording and counting from the preceding
+  five-minute anchor. An outlined circle and triangle mark the current minute
+  without relying only on color. Comparisons show 8:05/8:06/8:07 and
+  8:58/8:59/9:00, including the hour hand reaching nine and minutes resetting
+  to 00. Previous/next boundaries, example progress and Home use the existing
+  focus and navigation patterns. Practice interactions and snapping are unchanged;
+  the broader navigation review remains in Issue #24.
+
 Later-stage relative-time terminology is not added.
-There is no arbitrary-minute or 24-hour teaching, scoring, login, database,
+There is no exact-minute practice or 24-hour teaching, scoring, login, database,
 audio or parent PIN yet.
 
 ## Run locally
@@ -90,6 +101,17 @@ without scrolling the page; keyboard Tab/Enter navigation and existing practice
 snapping were also checked. Emulation does not verify physical iOS/Android
 devices, Safari/WebKit, or screen-reader announcements.
 
+Issue #25 verification passed all 86 automated tests, TypeScript, the production
+build and `git diff --check`. Production-preview Chromium checks passed at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. At every size,
+all fifteen examples, hand/marker geometry, comparison sequences, forward/back
+navigation and boundaries, keyboard Enter navigation, heading/Home focus,
+visible focus outlines, touch-target sizes, horizontal overflow and absence of
+browser errors were checked. Existing half/quarter/five-minute keyboard snapping
+and rollover were checked, and desktop/narrow-phone screenshots were inspected.
+These checks use emulation, not physical devices; Safari/WebKit and screen-reader
+announcements were not verified.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -99,6 +121,6 @@ verification; it is not a production deployment server.
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five-minute interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
