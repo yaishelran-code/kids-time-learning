@@ -44,7 +44,7 @@ describe('quarter-hour lesson', () => {
       expect(card.querySelector('.digital-time')?.getAttribute('dir')).toBe('ltr');
       expect(card.querySelector('.clock-caption')?.textContent).toBe(`השעה ${wording}`);
       expect(card.querySelector('svg')?.getAttribute('role')).toBe('img');
-      expect(card.querySelector('svg title')?.textContent).toContain(minute === 15 || minute === 45 ? `ו־${minute} דקות` : wording);
+      expect(card.querySelector('svg title')?.textContent).toContain(minute === 15 ? `ו־${minute} דקות` : wording);
       if (minute === 15) expect(card.textContent).toContain(`רבע מהדרך מ־${hour} ל־${hour % 12 + 1}`);
       if (minute === 45) expect(card.textContent).toContain(`שלושה רבעים מהדרך מ־${hour} ל־${hour % 12 + 1}`);
       expect(container.querySelector('[role="slider"]')).toBeNull();
@@ -76,7 +76,8 @@ describe('quarter-hour lesson', () => {
       expect(figures[index].querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
     }
     expect([...container.querySelectorAll('button')].map(value => value.textContent)).toEqual([
-      'הדוגמה הקודמת', 'הדוגמה הבאה', 'חזרה לבית',
+      'הדוגמה הקודמת', 'הדוגמה הבאה', 'תרגול כיוון רבעי שעות', 'תרגול קריאת רבעי שעות',
+      'תרגול משולב — שעות שלמות, חצאים ורבעים', 'חזרה לבית',
     ]);
   });
 });

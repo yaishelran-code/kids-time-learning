@@ -23,7 +23,17 @@ Hebrew RTL layout; digital times remain LTR.
   Example navigation moves focus to the example heading; returning Home
   restores focus to the lesson entry.
 
-Quarter-hour practice and later-stage relative-time terminology are not added.
+- Quarter-hour practice (Issue #18): eight setting exercises, eight reading
+  exercises and twelve mixed exercises covering :00/:15/:30/:45. The three
+  entries are in the quarter-hour lesson. Setting uses mouse/touch dragging
+  or keyboard arrows in 15-minute steps; full-hour and half-hour practice
+  retain their original snapping rules. Current digital selection stays hidden.
+  Reading provides three distinct choices, then “בדיקה” checks the selection.
+  Incorrect attempts can be retried; changing the selection clears feedback.
+  Correct answers lock until the next exercise. Each mode shows progress,
+  a completion screen, restart, return to the selected lesson example and Home.
+
+Later-stage relative-time terminology is not added.
 There is no arbitrary-minute or 24-hour teaching, scoring, login, database,
 audio or parent PIN yet.
 
@@ -55,9 +65,9 @@ verification; it is not a production deployment server.
 ## Structure
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
-- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half-hour interaction
+- `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter-hour interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, the quarter-hour lesson, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
