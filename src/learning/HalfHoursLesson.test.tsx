@@ -34,7 +34,7 @@ function check(hour: number, minute: number) {
 }
 
 describe('half-hour teaching', () => {
-  it('compares all four full hours with half past, supports back navigation and a future practice entry', () => {
+  it('compares all four full hours with half past, supports back navigation and active practice entries', () => {
     click('נלמד חצי שעה');
     expect(document.activeElement).toBe(container.querySelector('h1'));
     expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
@@ -52,7 +52,7 @@ describe('half-hour teaching', () => {
       if (hour !== 12) click('הדוגמה הבאה');
     }
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    expect(button('תרגול חצי שעה — בקרוב').disabled).toBe(true);
+    for (const label of ['תרגול כיוון חצי שעה', 'תרגול קריאת חצי שעה', 'תרגול משולב']) expect(button(label).disabled).toBe(false);
     click('הדוגמה הבאה');
     check(12, 30);
     click('חזרה לבית');
