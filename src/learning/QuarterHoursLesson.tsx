@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
+import { QuarterHoursPractice, quarterPracticeTitles, type QuarterPracticeMode } from './QuarterHoursPractice';
 
 const examples = [
   { hour: 7, minute: 0 }, { hour: 7, minute: 15 },
@@ -17,8 +18,16 @@ function digitalTime(hour: number, minute: number) {
 
 export function QuarterHoursLesson({ onHome }: { onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const [practice, setPractice] = useState<QuarterPracticeMode | null>(null);
+  const previousPractice = useRef<QuarterPracticeMode | null>(null);
+  const entries = useRef<Partial<Record<QuarterPracticeMode, HTMLButtonElement | null>>>({});
   const exampleHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { exampleHeading.current?.focus(); }, [index]);
+  useEffect(() => {
+    if (previousPractice.current && !practice) entries.current[previousPractice.current]?.focus();
+    previousPractice.current = practice;
+  }, [practice]);
+  if (practice) return <QuarterHoursPractice key={practice} mode={practice} onLesson={() => setPractice(null)} onHome={onHome} />;
   const { hour, minute } = examples[index];
   const nextHour = hour % 12 + 1;
   const label = timeLabel(hour, minute);
@@ -58,6 +67,11 @@ export function QuarterHoursLesson({ onHome }: { onHome: () => void }) {
         </figure>)}
       </div>
     </section>
+    <nav className="lesson-controls exercise-navigation" aria-label="תרגול רבעי שעות">
+      {(Object.keys(quarterPracticeTitles) as QuarterPracticeMode[]).map(mode => <button key={mode}
+        ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
+        onClick={() => setPractice(mode)}>{quarterPracticeTitles[mode]}</button>)}
+    </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;
 }

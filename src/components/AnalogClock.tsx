@@ -6,13 +6,13 @@ import { angleDelta, formatTime, minuteAngleFromPoint, minutesFromTime, timeFrom
 import { hourNames } from '../learning/examples';
 
 /** Each interaction mode keeps both hands tied to a single time. */
-export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void }) {
+export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30 }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 15 | 30 }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);
   const dragAngle = useRef<number | null>(null);
   const dragMinutes = useRef(0);
-  const time = { hour, minute: minute as 0 | 30 };
+  const time = { hour, minute: minute as ClockTime['minute'] };
   const interactive = Boolean(onHourChange || onTimeChange);
   // Chromium touch gestures must be cancelled at the start of a valid drag.
   useEffect(() => {
@@ -34,7 +34,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange }
     if (angle === null) return;
     if (dragAngle.current !== null) {
       dragMinutes.current += angleDelta(dragAngle.current, angle) / 6;
-      onTimeChange?.(timeFromMinutes(dragMinutes.current));
+      onTimeChange?.(timeFromMinutes(dragMinutes.current, minuteStep));
     }
     dragAngle.current = angle;
   }
@@ -65,7 +65,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange }
       onPointerUp={event => { if (draggingPointer.current === event.pointerId) updateDrag(event); endDrag(event); }} onPointerCancel={endDrag}
       onLostPointerCapture={() => { draggingPointer.current = null; }}>
 
-      <title id={titleId}>{`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
+      <title id={titleId}>{`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}${minute === 45 ? " ארבעים וחמש" : minute === 30 ? " וחצי" : minute === 0 ? "" : ` ו־${minute} דקות`}`}</title>
       <circle cx="150" cy="150" r="143" fill="#fff" stroke="#dbe4f1" strokeWidth="8" />
       {Array.from({ length: 60 }, (_, index) => (
         <line key={index} x1="150" y1="18" x2="150" y2={index % 5 === 0 ? '30' : '23'}
@@ -109,14 +109,14 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange }
           fill="#7357c8" stroke="#fff" strokeWidth="3" />
       </g>}
       {onTimeChange && <g className="hour-control" role="slider" tabIndex={0}
-        aria-label="מחוג הדקות" aria-valuemin={0} aria-valuemax={690} aria-valuenow={minutesFromTime(time)}
+        aria-label="מחוג הדקות" aria-valuemin={0} aria-valuemax={720 - minuteStep} aria-valuenow={minutesFromTime(time)}
         aria-valuetext={`השעה ${formatTime(time)}`} aria-orientation="horizontal"
         onPointerDown={event => {
           if (!event.isPrimary || event.button !== 0 || draggingPointer.current !== null) return;
           const angle = pointAngle(event);
           if (angle === null) return;
           event.preventDefault();
-          event.currentTarget.focus();
+          event.currentTarget.focus({ preventScroll: true });
           draggingPointer.current = event.pointerId;
           dragAngle.current = angle;
           dragMinutes.current = minutesFromTime(time);
@@ -124,13 +124,13 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange }
         }}
         onKeyDown={event => {
           let next: number;
-          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = minutesFromTime(time) + 30;
-          else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = minutesFromTime(time) - 30;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = minutesFromTime(time) + minuteStep;
+          else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = minutesFromTime(time) - minuteStep;
           else if (event.key === 'Home') next = 0;
-          else if (event.key === 'End') next = 690;
+          else if (event.key === 'End') next = 720 - minuteStep;
           else return;
           event.preventDefault();
-          onTimeChange(timeFromMinutes(next));
+          onTimeChange(timeFromMinutes(next, minuteStep));
         }}>
         <line x1="150" y1="150" x2="150" y2="60" transform={`rotate(${minute * 6} 150 150)`}
           stroke="transparent" strokeWidth="52" strokeLinecap="round" />
