@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
+import { RelativeTimePractice, relativeTimePracticeTitles, type RelativeTimePracticeMode } from './RelativeTimePractice';
 import { formatTime } from './clockTime';
 import { calculationSteps, durationLabel, durationMinutes, relativeTimeExamples } from './relativeTime';
 
 export function RelativeTimeLesson({ onHome }: { onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const [practice, setPractice] = useState<RelativeTimePracticeMode | null>(null);
+  const previousPractice = useRef<RelativeTimePracticeMode | null>(null);
+  const entries = useRef<Partial<Record<RelativeTimePracticeMode, HTMLButtonElement | null>>>({});
+  useEffect(() => {
+    if (previousPractice.current && !practice) entries.current[previousPractice.current]?.focus();
+    previousPractice.current = practice;
+  }, [practice]);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); }, [index]);
+  if (practice) return <RelativeTimePractice key={practice} mode={practice} onLesson={() => setPractice(null)} onHome={onHome} />;
   const example = relativeTimeExamples[index];
   const elapsed = example.kind === 'elapsed';
   const total = durationMinutes(example.start, example.end);
@@ -53,6 +62,11 @@ export function RelativeTimeLesson({ onHome }: { onHome: () => void }) {
     <nav className="lesson-controls" aria-label="דוגמאות לזמן שעבר ונשאר">
       <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
       <button className="start-button" type="button" disabled={index === 11} onClick={() => setIndex(index + 1)}>הדוגמה הבאה</button>
+    </nav>
+    <nav className="lesson-controls exercise-navigation" aria-label="תרגול זמן שעבר ונשאר">
+      {(Object.keys(relativeTimePracticeTitles) as RelativeTimePracticeMode[]).map(mode => <button key={mode}
+        ref={element => { entries.current[mode] = element; }} type="button" className="secondary-button"
+        onClick={() => setPractice(mode)}>{relativeTimePracticeTitles[mode]}</button>)}
     </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;
