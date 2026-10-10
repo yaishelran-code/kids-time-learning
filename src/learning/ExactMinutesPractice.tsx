@@ -1,3 +1,4 @@
+import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime, minutesFromTime, timeFromMinutes, type ClockTime } from './clockTime';
@@ -52,6 +53,7 @@ function spokenTime(time: ClockTime) {
 
 export function ExactMinutesPractice({ mode, onLesson, onHome }: { mode: ExactMinutesPracticeMode; onLesson: () => void; onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const reward = usePracticeRewards(`exact-${mode}`, index);
   const [time, setTime] = useState(() => initialTime(exactMinutesExercises[mode][0], 0));
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
@@ -70,6 +72,7 @@ export function ExactMinutesPractice({ mode, onLesson, onHome }: { mode: ExactMi
   useEffect(() => { heading.current?.focus(); }, [index, completed]);
   useEffect(() => { if (feedback === 'correct') nextButton.current?.focus(); }, [feedback]);
   function reset() {
+    reward.restart();
     setIndex(0); setTime(initialTime(exactMinutesExercises[mode][0], 0)); setSelected(null); setFeedback('idle'); setCompleted(false);
   }
   return <main className="home" dir="rtl">
@@ -95,16 +98,18 @@ export function ExactMinutesPractice({ mode, onLesson, onHome }: { mode: ExactMi
             setSelected(formatTime(value)); setFeedback('idle');
           }}><bdi dir="ltr">{formatTime(value)}</bdi></button>)}
       </div>}
-      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? 'כל הכבוד! תשובה נכונה 🎉' : 'כמעט! נסו שוב'}</p>
+      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? reward.message : 'כמעט! נסו שוב'}</p>
       {feedback !== 'correct' ? <button className="start-button" type="button" disabled={target.kind === 'reading' && selected === null}
-        onClick={() => setFeedback((target.kind === 'setting' ? formatTime(time) : selected) === answer ? 'correct' : 'incorrect')}>בדיקה</button>
+        onClick={() => { const correct = (target.kind === 'setting' ? formatTime(time) : selected) === answer; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={nextButton} className="start-button" type="button" onClick={() => {
           if (index === exactMinutesExercises[mode].length - 1) setCompleted(true);
           else { setIndex(index + 1); setTime(initialTime(exactMinutesExercises[mode][index + 1], index + 1)); setSelected(null); setFeedback('idle'); }
         }}>התרגיל הבא</button>}
     </>}
+    {feedback === 'correct' && !completed && reward.notice}
+    {completed && <>{reward.summary}{reward.notice}</>}
     <nav className="lesson-controls exercise-navigation" aria-label={completed ? 'סיום התרגול' : 'חזרה'}>
-      {completed && <button className="start-button" type="button" onClick={reset}>תרגלו שוב</button>}
+      <button className="start-button" type="button" onClick={reset}>{completed ? 'תרגלו שוב' : 'התחלה מחדש — רצף תגמולים חדש'}</button>
       <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
       <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>
     </nav>

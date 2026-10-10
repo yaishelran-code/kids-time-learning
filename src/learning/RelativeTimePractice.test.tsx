@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readLedger } from '../rewards/ledger';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -7,7 +8,7 @@ import { durationMinutes, durationLabel, calculationSteps } from './relativeTime
 import { durationChoices, relativeTimeExercises, relativeTimePracticeTitles } from './RelativeTimePractice';
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement, root: Root;
-beforeEach(() => { container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
+beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
 function button(label: string) { const value = [...container.querySelectorAll('button')].find(b => b.textContent === label); expect(value).toBeDefined(); return value!; }
 function click(label: string) { act(() => button(label).click()); }
@@ -74,6 +75,9 @@ describe('relative-time practice acceptance', () => {
       expect(document.activeElement).toBe(button('התרגיל הבא')); click('התרגיל הבא');
     }
     expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(readLedger().ledger.stars).toBe(relativeTimeExercises[mode].length);
+    expect(readLedger().ledger.runs[`relative-${mode}`]!.awarded).toHaveLength(relativeTimeExercises[mode].length);
+    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * relativeTimeExercises[mode].length} נקודות ו־${relativeTimeExercises[mode].length} כוכבים.`);
     expect(container.querySelector('.relative-calculation')).toBeNull();
     click('חזרה ללימוד'); expect(container.querySelector('h2')?.textContent).toContain('דוגמה 2 מתוך 12');
     expect(document.activeElement).toBe(button(relativeTimePracticeTitles[mode]));

@@ -9,7 +9,7 @@ import { angleDelta, formatTime, minuteAngleFromPoint, timeFromMinutes, type Clo
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement;
 let root: Root;
-beforeEach(() => {
+beforeEach(() => { localStorage.clear();
   container = document.createElement('div'); document.body.append(container);
   root = createRoot(container); act(() => root.render(<App />));
 });
@@ -71,6 +71,7 @@ describe('half-hour practice flows', () => {
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול השעות השלמות וחצאי השעות 🎉');
     expect(document.activeElement).toBe(container.querySelector('h1'));
     expect(container.querySelector('[role="slider"]')).toBeNull();
+    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(7, 0); expect(status()).toBe('');
     click('חזרה לבית'); expect(document.activeElement).toBe(button('נלמד חצי שעה'));
   });
@@ -92,6 +93,7 @@ describe('half-hour practice flows', () => {
       expect(answers.every(value => (value as HTMLButtonElement).disabled)).toBe(true);
       click('התרגיל הבא');
     }
+    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(1, 30); expect(status()).toBe('');
     expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
     click('חזרה ללימוד'); expect(container.querySelector('h1')?.textContent).toBe('חצי שעה');
@@ -108,6 +110,7 @@ describe('half-hour practice flows', () => {
       } else { hands(hour, minute); click(`${hour}:${minute ? '30' : '00'}`); }
       expect(status()).toContain('כל הכבוד'); click('התרגיל הבא');
     }
+    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(4, 0); expect(status()).toBe('');
   });
 

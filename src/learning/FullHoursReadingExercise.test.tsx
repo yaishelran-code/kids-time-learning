@@ -8,7 +8,7 @@ import { hourNames } from './examples';
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement;
 let root: Root;
-beforeEach(() => {
+beforeEach(() => { localStorage.clear();
   container = document.createElement('div');
   document.body.append(container);
   root = createRoot(container);
@@ -69,7 +69,7 @@ describe('full-hour reading exercise', () => {
     click('11:00');
     expect(answers().filter(option => option.getAttribute('aria-pressed') === 'true').map(option => option.textContent)).toEqual(['11:00']);
     click('1:00');
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! תשובה נכונה 🎉');
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
     expect(answers().filter(option => option.getAttribute('aria-pressed') === 'true').map(option => option.textContent)).toEqual(['1:00']);
     expect(document.activeElement).toBe(button('התרגיל הבא'));
     click('התרגיל הבא');
@@ -106,7 +106,7 @@ describe('full-hour reading exercise', () => {
       expect(button('התרגיל הבא')).toBeUndefined();
       checkQuestion(hour);
       click(`${hour}:00`);
-      expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! תשובה נכונה 🎉');
+      expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       click('התרגיל הבא');
     }
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול קריאת השעון 🎉');

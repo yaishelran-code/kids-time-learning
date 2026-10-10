@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readLedger } from '../rewards/ledger';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -8,7 +9,7 @@ import { dayPeriodAt, dayPeriods } from './dayPeriods';
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement, root: Root;
-beforeEach(() => { container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
+beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
 function button(label: string) { const value = [...container.querySelectorAll('button')].find(item => item.textContent === label); expect(value).toBeDefined(); return value!; }
 function click(label: string) { act(() => button(label).click()); }
@@ -107,7 +108,7 @@ describe('day-period practice content', () => {
         expect(container.querySelector('[role="status"]')?.textContent).toBe('');
       });
       click('בדיקה');
-      expect(container.querySelector('[role="status"]')?.textContent).toContain('תשובה נכונה');
+      expect(container.querySelector('[role="status"]')?.textContent).toContain('קיבלת כוכב');
       const explanation = container.querySelector('.day-practice-explanation')!;
       correct.forEach((id, storyIndex) => {
         expect(explanation.textContent).toContain(dayPeriods.find(period => period.id === id)!.name);
@@ -122,6 +123,9 @@ describe('day-period practice content', () => {
       expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
     }
     expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(readLedger().ledger.stars).toBe(dayPracticeQuestions[mode].length);
+    expect(readLedger().ledger.runs[`day-${mode}`]!.awarded).toHaveLength(dayPracticeQuestions[mode].length);
+    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * dayPracticeQuestions[mode].length} נקודות ו־${dayPracticeQuestions[mode].length} כוכבים.`);
     expect(container.querySelector('svg')).toBeNull(); expect(container.querySelector('.day-practice-explanation')).toBeNull();
     expect(document.activeElement).toBe(container.querySelector('h1'));
     click('תרגלו שוב');

@@ -161,3 +161,9 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 .storage-message { padding: 16px; border: 2px solid #53647c; border-radius: 18px; margin-bottom: 20px; background: #fff; }
 .empty-day { padding: 24px 0; }
 .my-day #delete-description { overflow-wrap: anywhere; }
+.reward-totals, .reward-summary { font-size: 1.25rem; font-weight: 700; }
+.reward-unlock { padding: 16px; border: 2px solid #167d87; border-radius: 18px; background: #e5f5f4; }
+.reward-storage { margin-block: 20px; border: 2px solid #53647c; border-radius: 18px; background: #fff; }
+.character-collection { display: grid; gap: 16px; }
+.character-card img { display: block; width: min(100%, 240px); height: auto; margin-inline: auto; }
+.character-locked img { filter: grayscale(1); }

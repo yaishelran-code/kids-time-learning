@@ -1,3 +1,4 @@
+import { Collection, RewardTotals, RewardsProvider } from './rewards/Rewards';
 import { Baseline } from './baseline/Baseline';
 import type { StartingPoint } from './baseline/assessment';
 import { ClockStructureLesson } from './learning/ClockStructureLesson';
@@ -12,7 +13,15 @@ import { AnalogClock } from './components/AnalogClock';
 import { MyDay } from './myDay/MyDay';
 import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 
-export function App() {
+export function App() { return <RewardsProvider><AppScreens /></RewardsProvider>; }
+function AppScreens() {
+  const [collection, setCollection] = useState(false);
+  const collectionButton = useRef<HTMLButtonElement>(null);
+  const wasCollection = useRef(false);
+  useEffect(() => {
+    if (wasCollection.current && !collection) collectionButton.current?.focus();
+    wasCollection.current = collection;
+  }, [collection]);
   const [baseline, setBaseline] = useState(false);
   const [baselineLesson, setBaselineLesson] = useState<StartingPoint | null>(null);
   const baselineButton = useRef<HTMLButtonElement>(null);
@@ -84,6 +93,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (collection) return <Collection onHome={() => setCollection(false)} />;
   if (baseline) {
     const onHome = () => { setBaseline(false); setBaselineLesson(null); };
     if (baselineLesson === 'structure') return <ClockStructureLesson onHome={onHome} onFullHours={() => setBaselineLesson('fullHours')} />;
@@ -115,6 +125,8 @@ export function App() {
         <p className="digital-time" dir="ltr" aria-label="השעה שבע">7:00</p>
         <p className="clock-caption">השעה שבע</p>
       </section>
+      <RewardTotals />
+      <button ref={collectionButton} className="secondary-button exercise-entry" type="button" onClick={() => setCollection(true)}>האוסף שלי</button>
       <button ref={baselineButton} className="secondary-button exercise-entry" type="button" onClick={() => setBaseline(true)}>מאיפה מתחילים?</button>
       <button ref={structureButton} className="secondary-button exercise-entry" type="button" onClick={() => setStructure(true)}>מבנה השעון</button>
       <button ref={startButton} className="start-button" type="button" onClick={() => setLearning(true)}>התחל ללמוד</button>

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readLedger } from '../rewards/ledger';
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +11,7 @@ import { exactMinutesExercises, exactMinutesPracticeTitles, type ExactMinutesPra
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement;
 let root: Root;
-beforeEach(() => { container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
+beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
 function button(label: string) { const b = [...container.querySelectorAll('button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
 function click(label: string) { act(() => button(label).click()); }
@@ -102,7 +103,7 @@ describe('exact-minute practice', () => {
         click(formatTime(target));expect(status()).toBe('');
       }
       expect(container.textContent).not.toContain('התרגיל הבא');
-      click('בדיקה');expect(status()).toBe('כל הכבוד! תשובה נכונה 🎉');
+      click('בדיקה');expect(status()).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       expect(document.activeElement).toBe(button('התרגיל הבא'));
       expect(container.querySelector('[role="slider"]')).toBeNull();
       const svg = container.querySelector('svg')!;
@@ -122,6 +123,9 @@ describe('exact-minute practice', () => {
       expect(distances.some(n => n < 0)).toBe(true);
     }
     expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(readLedger().ledger.stars).toBe(exactMinutesExercises[mode].length);
+    expect(readLedger().ledger.runs[`exact-${mode}`]!.awarded).toHaveLength(exactMinutesExercises[mode].length);
+    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * exactMinutesExercises[mode].length} נקודות ו־${exactMinutesExercises[mode].length} כוכבים.`);
     expect(container.querySelector('h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'המשולב');
     expect(container.textContent).not.toContain('תרגיל 1 מתוך');
     click('תרגלו שוב');expect(status()).toBe('');expect(container.querySelector('[aria-pressed="true"]')).toBeNull();

@@ -1,3 +1,4 @@
+import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 
@@ -12,6 +13,7 @@ const exercises = [
 
 export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () => void; onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const reward = usePracticeRewards('full-reading', index);
   const [selected, setSelected] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -22,17 +24,16 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
   useEffect(() => { heading.current?.focus(); }, [index, completed]);
   useEffect(() => { if (correct) nextButton.current?.focus(); }, [correct]);
 
+  function reset() { reward.restart(); setIndex(0); setSelected(null); setCompleted(false); }
+
   if (completed) return (
     <main className="home" dir="rtl">
       <header className="clock-card">
         <h1 ref={heading} tabIndex={-1}>כל הכבוד! סיימתם את תרגול קריאת השעון 🎉</h1>
       </header>
+      {reward.summary}{reward.notice}
       <nav className="lesson-controls" aria-label="סיום תרגול קריאת השעון">
-        <button className="start-button" type="button" onClick={() => {
-          setIndex(0);
-          setSelected(null);
-          setCompleted(false);
-        }}>תרגלו שוב</button>
+        <button className="start-button" type="button" onClick={reset}>תרגלו שוב</button>
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
       </nav>
     </main>
@@ -51,18 +52,20 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
       <div className="lesson-controls reading-answers" role="group" aria-label="בחרו את השעה">
         {target.answers.map(hour => (
           <button key={hour} className="secondary-button" type="button" aria-pressed={selected === hour}
-            disabled={correct} onClick={() => setSelected(hour)}>
+            disabled={correct} onClick={() => { if (hour === target.hour) reward.award(); setSelected(hour); }}>
             <bdi dir="ltr">{hour}:00</bdi>
           </button>
         ))}
       </div>
       <p className="exercise-feedback" role="status" aria-live="polite">
-        {selected === null ? '' : correct ? 'כל הכבוד! תשובה נכונה 🎉' : 'כמעט! נסו שוב'}
+        {selected === null ? '' : correct ? reward.message : 'כמעט! נסו שוב'}
       </p>
       {correct && <button ref={nextButton} className="start-button" type="button" onClick={() => {
         if (index === exercises.length - 1) setCompleted(true);
         else { setIndex(index + 1); setSelected(null); }
       }}>התרגיל הבא</button>}
+      {correct && reward.notice}
+      <button className="secondary-button exercise-entry" type="button" onClick={reset}>התחלה מחדש — רצף תגמולים חדש</button>
       <nav className="lesson-controls exercise-navigation" aria-label="חזרה">
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
         <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>

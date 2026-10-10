@@ -1,3 +1,4 @@
+import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 
@@ -12,6 +13,7 @@ const exercises = [
 
 export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const reward = usePracticeRewards('full-setting', index);
   const [hour, setHour] = useState(1);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
   const heading = useRef<HTMLHeadingElement>(null);
@@ -22,17 +24,16 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
   useEffect(() => { heading.current?.focus(); }, [index, completed]);
   useEffect(() => { if (feedback === 'correct' && !completed) nextButton.current?.focus(); }, [feedback, completed]);
 
+  function reset() { reward.restart(); setIndex(0); setHour(1); setFeedback('idle'); }
+
   if (completed) return (
     <main className="home" dir="rtl">
       <header className="clock-card">
         <h1 ref={heading} tabIndex={-1}>כל הכבוד! סיימתם את התרגול 🎉</h1>
       </header>
+      <p role="status">{reward.message}</p>{reward.summary}{reward.notice}
       <nav className="lesson-controls" aria-label="סיום התרגול">
-        <button className="start-button" type="button" onClick={() => {
-          setIndex(0);
-          setHour(1);
-          setFeedback('idle');
-        }}>תרגלו שוב</button>
+        <button className="start-button" type="button" onClick={reset}>תרגלו שוב</button>
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
       </nav>
     </main>
@@ -51,10 +52,10 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
         <p className="clock-caption">אפשר גם לבחור במחוג ולהשתמש במקשי החצים.</p>
       </section>
       <p className="exercise-feedback" role="status" aria-live="polite">
-        {feedback === 'correct' ? 'כל הכבוד! כיוונתם את השעון נכון!' : feedback === 'incorrect' ? 'עוד לא, אבל אתם בדרך! נסו להזיז את המחוג הקצר ולבדוק שוב.' : ''}
+        {feedback === 'correct' ? reward.message : feedback === 'incorrect' ? 'עוד לא, אבל אתם בדרך! נסו להזיז את המחוג הקצר ולבדוק שוב.' : ''}
       </p>
       <nav className="lesson-controls" aria-label="בדיקת התרגיל">
-        {feedback !== 'correct' && <button className="start-button" type="button" onClick={() => setFeedback(hour === target.hour ? 'correct' : 'incorrect')}>בדיקה</button>}
+        {feedback !== 'correct' && <button className="start-button" type="button" onClick={() => { if (hour === target.hour) reward.award(); setFeedback(hour === target.hour ? 'correct' : 'incorrect'); }}>בדיקה</button>}
         {feedback === 'incorrect' && <button className="secondary-button" type="button" onClick={() => {
           setFeedback('idle');
           clockCard.current?.querySelector<SVGElement>('[role="slider"]')?.focus();
@@ -65,6 +66,8 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
           setFeedback('idle');
         }}>התרגיל הבא</button>}
       </nav>
+      {feedback === 'correct' && reward.notice}
+      <button className="secondary-button exercise-entry" type="button" onClick={reset}>התחלה מחדש — רצף תגמולים חדש</button>
       <nav className="lesson-controls exercise-navigation" aria-label="חזרה">
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
         <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>
