@@ -5,9 +5,59 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, **היום שלי**, **מאיפה מתחילים?**, **מבנה השעון**, and **האוסף שלי**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, **היום שלי**, **מאיפה מתחילים?**, **מבנה השעון**, **האוסף שלי**, and **אזור הורה**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
+
+- Parent help (Issue #48): all 20 practice modes share seven topic counters.
+  Three consecutive wrong checked answers pause that topic; success resets only
+  that topic, even when the question was already rewarded. Clock questions are
+  classified by their target minute: 00 whole hours, 30 halves, 15/45 quarters,
+  other multiples of five five-minute practice, and other minutes exact minutes.
+  This applies to earlier-level questions inside advanced/mixed practice too.
+  Elapsed/remaining share relative time; identification/comparison share day
+  periods. Comparison checking is one attempt even if both selections are wrong.
+  Selection/hand movement does not count unless the existing mode checks on
+  selection (full-hour and half-hour reading). Baseline and lessons do not count.
+  Pauses hide answer controls and solutions, retain the current question during
+  inline unlocking, and allow Home/lessons and other topics. Mixed practice does
+  not skip a paused question. Navigation, practice restart and refresh do not
+  clear saved counters or pauses; later reentry retains the existing question-one
+  behavior. Unlocking resets only the chosen topic; explicit **פתיחת כל הנושאים**
+  resets all paused topics, preserving counters below three. Neither grants nor
+  removes rewards. Three new mistakes can pause the topic again.
+
+- Fixed parent PIN: **1212 is the only code**, used both to unlock a paused topic
+  and to enter **אזור הורה**. There is no personal PIN setup/change/recovery.
+  The masked field accepts exactly four ASCII digits and requests a numeric
+  keyboard. Wrong PIN attempts leave pauses and rewards unchanged; input is not
+  logged or persisted and the code is not displayed in child screens.
+  Leaving the parent area or refreshing requires authentication again. This is
+  a fixed, known accompaniment code, not strong security: anyone who knows it
+  can use parent actions, and browser data/code can be edited or deleted.
+
+- Confirmed parent resets: **איפוס התגמולים והאוסף** requires parent entry plus
+  an additional deletion confirmation. Cancellation changes nothing. Successful
+  saving replaces the single reward snapshot before updating in-memory totals,
+  character unlocks and all run/award history; fresh awards are possible again.
+  Failed saving preserves the previous in-memory and stored state and offers
+  retry. It also permits explicitly confirmed replacement of corrupt reward
+  data, which normal awards/restarts never overwrite. Baseline/recommendation,
+  My Day, mistake counters and pauses are preserved.
+
+- Parent-help persistence: `kids-time-learning.parent-help.v1` is separate from
+  rewards, Baseline and My Day. Ordinary attempt/unlock write failures retain
+  the current in-memory counters/pauses, warn and offer snapshot-save retry;
+  failed saving never silently clears a pause. Refresh/closing after failed
+  saving may lose unsaved changes, including an unlock. Corrupt/unreadable parent
+  data blocks answering in every practice topic rather than assuming no pauses.
+  Home/lessons remain available and stored data is never automatically overwritten.
+  In the authenticated parent area, explicit **התאוששות נתוני עזרת הורה** plus
+  another confirmation resets only counters/pauses after successful saving.
+  Failed recovery preserves the blocked state and prior data. Rewards, Baseline
+  and My Day are untouched. One active tab is assumed; no cross-tab/device
+  synchronization or backup. No parent progress report, adaptive difficulty,
+  skill tracking or graded hints are added; #24 and #27 remain separate.
 
 - Practice rewards (Issue #46): every correctly solved practice question earns
   10 points and one star, including success after retries. Mistakes never subtract
@@ -48,9 +98,10 @@ Hebrew RTL layout; digital times remain LTR.
   successfully saved state. Corrupt/unreadable data is never automatically reset
   or overwritten, even after a reward or restart. In that case practice continues
   with temporary in-memory rewards, persistence is blocked for that session and
-  a warning asks for adult help; there is no destructive automatic recovery.
+  a warning asks for adult help. Only an authenticated, explicitly confirmed
+  parent reset can replace these data; there is no automatic recovery.
   A refresh can retry reading after the underlying problem is resolved.
-  No parent PIN, skill tracking, adaptive difficulty or streak bonuses are added;
+  Issue #46 added no parent PIN, skill tracking, adaptive difficulty or streak bonuses;
   broader navigation review (#24) and minute-button renaming (#27) remain separate.
 
 - Baseline (Issue #43): **מאיפה מתחילים?** opens an optional 12-question
@@ -237,7 +288,7 @@ Hebrew RTL layout; digital times remain LTR.
   separate. No end-time calculation, overnight intervals, 24-hour teaching,
   scoring or persistence is added.
 
-There is no 24-hour teaching, login, database, audio or parent PIN yet.
+There is no 24-hour teaching, login, database, audio or parent progress report yet.
 
 ## Run locally
 
@@ -479,6 +530,50 @@ browser checks; smaller viewports cover every mode's first question and reward
 lifecycle. Storage faults are simulated. Single-active-tab and failed-storage
 limitations are described above; simultaneous multi-tab practice was not tested.
 
+Issue #48 verification passed all 245 automated tests across 20 files with the
+standard `npm test` command (61.75s) and unchanged default timeouts, plus
+TypeScript, production build and whitespace checks. Thirty-eight new tests cover
+all 20 mode integrations, all 60 minute classifications, every quarter/five/exact
+mixed question, exactly-three pauses, topic-only success resets, repeated checks
+before rendering, navigation/restart/remount persistence, already-rewarded success,
+combined comparison attempts, fixed PIN, parent reauthentication, single/all-topic
+unlocking, cancellation, safe reward reset, corrupt/unreadable data, failed-save
+retry and preservation of other stores. Existing reward and completion tests pass;
+Home assertions now expect the actual parent entry rather than the placeholder.
+Browser verification ran separately on the production build in Chromium at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. Every size checked
+all 20 modes' first-question pause/unlock lifecycle, exactly-three mistakes,
+restart/navigation/actual-reload persistence, wrong/right masked PIN, resumed
+practice, already-credited success without duplicate rewards, individual/all-topic
+unlocking, parent exit/refresh reauthentication, reset cancellation/success,
+locked collection after reset, durable re-earning, heading/Home/confirmation focus,
+RTL and absence of horizontal overflow or browser errors. Desktop, phone and
+narrow-phone pause/parent screenshots were inspected. Desktop and narrow-phone
+checks also covered all seven paused topics, reset confirmation/cancellation focus,
+keyboard PIN submission and controls at least 44px high; confirmation screenshots
+were visually inspected.
+Separate browser fault cases verified reward-reset failure with old totals,
+unlocks and award history intact; corrupt-reward reset with temporary rewards
+preserved on failure; parent-data recovery cancellation/failure/retry; unsaved
+pauses surviving navigation and later saved/reloaded; blocked reads failing closed;
+exact PIN validation and keyboard Enter; three new mistakes after unlocking;
+later-question resume; and a mid-sequence earlier-level mixed pause without
+skipping. Baseline recommendation and My Day activities remained usable and their
+stored bytes were unchanged; parent-data recovery retained reward deduplication.
+The existing reward browser regression also passed all 224 questions across all
+20 modes on desktop, including completed-run summaries, unlocks and restarts;
+all five smaller viewports checked every mode's first-question reward lifecycle,
+navigation/reload deduplication and explicit restarts. Threshold/locked states,
+corrupt-reward protection, save retries, lesson/Baseline/My Day non-eligibility and
+loaded original illustrations passed. Full completion is covered by desktop
+browser verification and automated tests; smaller screens cover first questions.
+Chromium mouse, keyboard and emulated touch were used. Physical iOS/Android
+devices, Safari/WebKit, Firefox and screen-reader announcements were not verified.
+Storage faults were simulated. One active tab is assumed; browser storage can be
+edited/cleared, and refresh after a failed save can lose unsaved changes. The known
+fixed PIN is a local accompaniment mechanism, not identity verification or strong
+security. No broader navigation redesign (#24) or minute-button renaming (#27).
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -486,6 +581,7 @@ verification; it is not a production deployment server.
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
+- `src/parent/`: shared topic counters, persistent pauses, fixed-PIN parent area, confirmed recovery and tests
 - `src/rewards/`: shared reward ledger/provider, per-run summaries, collection screen and tests
 - `src/assets/characters/`: three original collectible ninja SVG illustrations
 - `src/baseline/`: fixed assessment questions, recommendation rules, versioned local storage, assessment screen and tests

@@ -93,7 +93,7 @@ describe('reward UI and persistence',()=>{
   });
   it('keeps pending awards across navigation and saves retries without duplicating them',()=>{
     const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});openReading();click('1:00');expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא הצלחנו לשמור');click('נסו לשמור תגמולים שוב');click('חזרה לבית');expect(container.querySelector('.reward-totals')?.textContent).toContain('10 נקודות');openReading();click('1:00');expect(container.querySelector('[role="status"]')?.textContent).toContain('כבר קיבלת');
-    spy.mockRestore();click('נסו לשמור תגמולים שוב');expect(saved().stars).toBe(1);expect(saved().runs['full-reading']!.awarded).toEqual([0]);expect(container.querySelector('[role="alert"]')).toBeNull();
+    spy.mockRestore();click('נסו לשמור תגמולים שוב');expect(saved().stars).toBe(1);expect(saved().runs['full-reading']!.awarded).toEqual([0]);expect(container.querySelector('.reward-storage')).toBeNull();
     remount();openReading();click('1:00');expect(saved().stars).toBe(1);
   });
   it('protects corrupt data even after success or restart, and lessons/Baseline/My Day never earn rewards',()=>{

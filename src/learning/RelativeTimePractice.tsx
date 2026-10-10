@@ -1,3 +1,4 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -51,10 +52,13 @@ export function RelativeTimePractice({ mode, onLesson, onHome }: { mode: Relativ
   useEffect(() => { if (feedback === 'correct') next.current?.focus(); }, [feedback]);
   const questions = relativeTimeExercises[mode];
   const question = questions[index];
+  const topic = 'relative';
+  const help = usePracticeHelp(topic);
   const total = durationMinutes(question.start, question.end);
   const hours = Math.floor(total / 60), minutes = total % 60;
   const anchor = timeFromMinutes(question.start.hour % 12 * 60 + question.start.minute + hours * 60, 5);
   function clear() { setSelected(null); setFeedback('idle'); }
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
   return <main className="home" dir="rtl">
     <header><h1 ref={heading} tabIndex={-1}>{completed ? `כל הכבוד! סיימתם ${relativeTimePracticeTitles[mode]} 🎉` : relativeTimePracticeTitles[mode]}</h1>
       {!completed && <><p>תרגיל {index + 1} מתוך {questions.length}</p><p className="relative-question">{question.story}</p></>}
@@ -79,7 +83,7 @@ export function RelativeTimePractice({ mode, onLesson, onHome }: { mode: Relativ
         <p>{hours > 0 && <>מ־<bdi dir="ltr">{formatTime(question.start)}</bdi> עד <bdi dir="ltr">{formatTime(anchor)}</bdi>: {durationLabel(hours * 60)}. </>}{minutes > 0 && <>מ־<bdi dir="ltr">{formatTime(anchor)}</bdi> עד <bdi dir="ltr">{formatTime(question.end)}</bdi>: עוד {minutes / 5} צעדים של 5 דקות, שהם {minutes} דקות</>}.</p>
         <p className="relative-answer">{question.kind === 'elapsed' ? 'עברו' : 'נשארו'} {durationLabel(total)}.</p>
       </section>}
-      {feedback !== 'correct' ? <button type="button" className="start-button" disabled={selected === null} onClick={() => { const correct = selected === total; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
+      {feedback !== 'correct' ? <button type="button" className="start-button" disabled={selected === null} onClick={() => { const correct = selected === total; if (!help.attempt(correct)) return; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={next} type="button" className="start-button" onClick={() => { if (index === questions.length - 1) setCompleted(true); else { setIndex(index + 1); clear(); } }}>התרגיל הבא</button>}
     </>}
     {feedback === 'correct' && !completed && reward.notice}

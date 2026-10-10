@@ -4,14 +4,15 @@ import { App } from './App';
 import { AnalogClock } from './components/AnalogClock';
 
 describe('initial Home screen', () => {
-  it('renders Hebrew welcome, learning entry, and a parent placeholder', () => {
+  it('renders Hebrew welcome, learning entry, and the parent entry', () => {
     const html = renderToStaticMarkup(<App />);
     expect(html).toContain('לומדים את השעה');
     expect(html).toContain('שלום!');
     expect(html).toContain('type="button"');
     expect(html).toContain('התחל ללמוד');
-    expect(html).toContain('אזור הורים');
-    expect(html).toContain('בקרוב');
+    expect(html).toContain('אזור הורה');
+    expect(html).not.toContain('בקרוב');
+    expect(html).not.toContain('1212');
   });
 
   it('shows seven in a left-to-right digital display', () => {

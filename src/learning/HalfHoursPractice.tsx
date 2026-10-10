@@ -1,3 +1,5 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
+import { clockTopic } from '../parent/state';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -30,6 +32,8 @@ export function HalfHoursPractice({ mode, onLesson, onHome }: { mode: PracticeMo
   const heading = useRef<HTMLHeadingElement>(null);
   const nextButton = useRef<HTMLButtonElement>(null);
   const target = exercises[mode][index];
+  const topic = clockTopic(target.minute);
+  const help = usePracticeHelp(topic);
   const answer = formatTime(target);
   const choices = [target, { hour: target.hour, minute: target.minute === 0 ? 30 : 0 } as ClockTime,
     { hour: target.hour % 12 + 1, minute: target.minute }];
@@ -41,6 +45,7 @@ export function HalfHoursPractice({ mode, onLesson, onHome }: { mode: PracticeMo
     reward.restart();
     setIndex(0); setTime(initialTime(exercises[mode][0])); setSelected(null); setFeedback('idle'); setCompleted(false);
   }
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
   return <main className="home" dir="rtl">
     <header>
       <h1 ref={heading} tabIndex={-1}>{completed ? 'כל הכבוד! סיימתם את תרגול השעות השלמות וחצאי השעות 🎉' : titles[mode]}</h1>
@@ -57,12 +62,12 @@ export function HalfHoursPractice({ mode, onLesson, onHome }: { mode: PracticeMo
       {target.kind === 'reading' && <div className="lesson-controls reading-answers" role="group" aria-label="בחרו את השעה">
         {answers.map(value => <button key={formatTime(value)} type="button" className="secondary-button"
           aria-pressed={selected === formatTime(value)} disabled={feedback === 'correct'} onClick={() => {
-            setSelected(formatTime(value)); if (formatTime(value) === answer) reward.award(); setFeedback(formatTime(value) === answer ? 'correct' : 'incorrect');
+            if (!help.attempt(formatTime(value) === answer)) return; setSelected(formatTime(value)); if (formatTime(value) === answer) reward.award(); setFeedback(formatTime(value) === answer ? 'correct' : 'incorrect');
           }}><bdi dir="ltr">{formatTime(value)}</bdi></button>)}
       </div>}
       <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? reward.message : 'כמעט! נסו שוב'}</p>
       {target.kind === 'setting' && feedback !== 'correct' && <button className="start-button" type="button"
-        onClick={() => { if (formatTime(time) === answer) reward.award(); setFeedback(formatTime(time) === answer ? 'correct' : 'incorrect'); }}>בדיקה</button>}
+        onClick={() => { if (!help.attempt(formatTime(time) === answer)) return; if (formatTime(time) === answer) reward.award(); setFeedback(formatTime(time) === answer ? 'correct' : 'incorrect'); }}>בדיקה</button>}
       {feedback === 'correct' && <button ref={nextButton} className="start-button" type="button" onClick={() => {
         if (index === exercises[mode].length - 1) setCompleted(true);
         else { setIndex(index + 1); setTime(initialTime(exercises[mode][index + 1])); setSelected(null); setFeedback('idle'); }

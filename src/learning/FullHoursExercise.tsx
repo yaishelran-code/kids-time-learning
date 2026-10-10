@@ -1,3 +1,4 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -20,11 +21,15 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
   const nextButton = useRef<HTMLButtonElement>(null);
   const clockCard = useRef<HTMLElement>(null);
   const target = exercises[index];
+  const topic = 'full';
+  const help = usePracticeHelp(topic);
   const completed = index === exercises.length - 1 && feedback === 'correct';
   useEffect(() => { heading.current?.focus(); }, [index, completed]);
   useEffect(() => { if (feedback === 'correct' && !completed) nextButton.current?.focus(); }, [feedback, completed]);
 
   function reset() { reward.restart(); setIndex(0); setHour(1); setFeedback('idle'); }
+
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
 
   if (completed) return (
     <main className="home" dir="rtl">
@@ -55,7 +60,7 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
         {feedback === 'correct' ? reward.message : feedback === 'incorrect' ? 'עוד לא, אבל אתם בדרך! נסו להזיז את המחוג הקצר ולבדוק שוב.' : ''}
       </p>
       <nav className="lesson-controls" aria-label="בדיקת התרגיל">
-        {feedback !== 'correct' && <button className="start-button" type="button" onClick={() => { if (hour === target.hour) reward.award(); setFeedback(hour === target.hour ? 'correct' : 'incorrect'); }}>בדיקה</button>}
+        {feedback !== 'correct' && <button className="start-button" type="button" onClick={() => { if (!help.attempt(hour === target.hour)) return; if (hour === target.hour) reward.award(); setFeedback(hour === target.hour ? 'correct' : 'incorrect'); }}>בדיקה</button>}
         {feedback === 'incorrect' && <button className="secondary-button" type="button" onClick={() => {
           setFeedback('idle');
           clockCard.current?.querySelector<SVGElement>('[role="slider"]')?.focus();
