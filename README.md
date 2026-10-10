@@ -5,7 +5,7 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, and **לימוד דקות מדויקות**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, and **כמה זמן עבר ונשאר?**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
 
@@ -87,7 +87,20 @@ Hebrew RTL layout; digital times remain LTR.
   and restores focus; return Home is available throughout. Hebrew wording includes
   “דקה אחת”, with RTL text and LTR digital times. Issues #24 and #27 remain separate.
 
-Later-stage relative-time terminology is not added.
+- Elapsed/remaining time lesson (Issue #32): twelve fixed, display-only examples
+  progress from whole hours to minutes within an hour, minutes across an hour,
+  and hours plus minutes. Everyday stories explicitly identify day periods.
+  Two accurate analog clocks show visible LTR digital times and roles:
+  “התחלנו”, “עכשיו” or “הפעילות מתחילה”. The lesson distinguishes a clock time
+  from a duration and answers “כמה זמן עבר?” / “כמה זמן נשאר?” in full sentences.
+  A numbered vertical timeline with downward arrows keeps event order clear in
+  RTL and on narrow screens. Calculations count whole hours first, then individual
+  five-minute steps, with a summary and explanations of 60 minutes as one hour
+  and 90 minutes as an hour and a half. Forward event order and day context handle
+  twelve and the morning-to-noon transition without showing 24-hour time.
+  Previous/next boundaries, example progress and Home follow existing navigation
+  and focus patterns. No interactive relative-time practice, overnight durations,
+  scoring or persistence is introduced; Issues #24 and #27 remain separate.
 There is no 24-hour teaching, scoring, login, database, audio or parent PIN yet.
 
 ## Run locally
@@ -169,6 +182,21 @@ CDP-emulated touch. Desktop and phone boundary-case screenshots were inspected.
 These checks use Chromium emulation; physical devices, Safari/WebKit, Firefox
 and screen-reader announcements were not verified.
 
+Issue #32 verification passed all 110 automated tests across 13 files, TypeScript,
+production build and whitespace checks. Independent acceptance fixtures cover all
+12 durations, whole-hour/five-minute decomposition, step continuity and endpoints.
+Rendered tests check both clocks' hand angles, digital times, role/day labels,
+answers, explanations, read-only behavior, navigation boundaries and focus.
+Production-preview Chromium checks passed at 1280×900, 390×844, 844×390,
+768×1024, 1024×768 and 320×568. Each size checked all 12 examples, clock geometry,
+durations/answers, timeline steps and downward order, RTL/LTR, touch-target sizes,
+no horizontal overflow, previous/next boundaries, keyboard Tab/Enter navigation and
+heading/Home focus. Existing lessons and all practice entries passed browser
+smoke checks; existing setting sliders responded to keyboard input. No browser
+runtime or console errors occurred. Desktop and narrow-phone screenshots were
+visually inspected. Phone/tablet checks use Chromium emulation; physical devices,
+Safari/WebKit, Firefox and screen-reader announcements were not verified.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -178,6 +206,6 @@ verification; it is not a production deployment server.
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, elapsed/remaining-time lesson, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.
