@@ -114,6 +114,26 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
   .relative-clocks .analog-clock { width: min(100%, 260px); }
 }
 .duration-answers > button { flex-basis: 180px; font-size: 1.3rem; }
+.day-sequence { margin: 24px 0; }
+.day-sequence ol { list-style: none; padding: 0; display: grid; gap: 12px; }
+.day-sequence li { position: relative; padding: 12px; border: 2px solid #dbe4f1; border-radius: 14px; background: #fff; }
+.day-sequence li[aria-current="step"] { border-color: #167d87; font-weight: 700; }
+.day-sequence-arrow { position: absolute; bottom: -20px; left: calc(50% - 12px); width: 24px; z-index: 1; background: #f4f7fc; color: #167d87; font-size: 24px; line-height: 28px; }
+.day-new-morning { font-weight: 700; }
+.day-context-clock { margin: 0; min-width: 0; }
+.day-time { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 8px; }
+.day-time .digital-time { margin: 8px 0; }
+.day-time > span { font-size: 1.2rem; }
+.day-story { font-size: 1.2rem; }
+.day-comparisons { margin-top: 28px; }
+.day-comparison { padding: 16px; margin-top: 16px; border: 2px solid #dbe4f1; border-radius: 18px; background: #fff; }
+.day-comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.day-comparison-grid .digital-time { font-size: 1.8rem; }
+.day-example + .lesson-controls .start-button:disabled { opacity: .5; cursor: default; }
+@media (max-width: 500px) {
+  .day-comparison-grid { grid-template-columns: minmax(0, 1fr); }
+  .day-comparison-grid .analog-clock { width: min(100%, 260px); }
+}
 @media (max-width: 500px) {
   .duration-answers { flex-direction: column; align-items: center; }
   .duration-answers > button { flex: none; width: 100%; }

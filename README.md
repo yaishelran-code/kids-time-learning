@@ -5,9 +5,24 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, and **כמה זמן עבר ונשאר?**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, and **לימוד חלקי היום**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
+
+- Parts of the day (Issue #36): ten fixed, display-only stories cover morning,
+  noon, afternoon, evening and night: 7:00 morning, 10:00 morning, 12:00 noon,
+  1:30 noon, 4:00 afternoon, 5:30 afternoon, 7:00 evening, 8:30 evening,
+  10:00 night and 2:00 night. Every clock has a visible 12-hour digital time,
+  day-period label and captioned symbol. A vertical sequence with downward
+  arrows keeps the five periods unambiguous in RTL and explains that a new
+  morning follows night. Paired comparisons of 7:00 morning/evening and
+  10:00 morning/night show identical hands with different stories and symbols.
+  Activities are examples, not rules for every family. Internal minutes since
+  midnight classify periods using the PRD boundaries, including midnight and
+  day rollover; children see no 24-hour times or technical boundary table.
+  Previous/next boundaries, example numbering and Home reuse the existing
+  navigation and focus patterns. No practice or broader navigation/button
+  redesign is included; Issues #24 and #27 remain separate.
 
 - Full hours: paired morning/evening examples of 7:00, 8:00 and 6:00,
   setting practice with a draggable hour hand, and clock-reading practice.
@@ -234,6 +249,28 @@ Phone/tablet checks use Chromium emulation, not physical devices; Safari/WebKit,
 Firefox and screen-reader announcements were not verified. Practice progress
 remains session-only and is reset on reentry, matching the existing flows.
 
+Issue #36 verification passed all 145 automated tests across 15 files (28 new
+cases), TypeScript, production build and whitespace checks. Independent fixtures
+check all ten examples and exact hand angles, both identical-hand comparisons,
+different periods/stories/symbols, five-period order, navigation boundaries and
+focus. Classification cases cover every transition immediately before, at and
+after its boundary, midnight, next-day rollover and negative-day normalization.
+The default test command passed with browser verification run separately;
+running both concurrently caused three existing practice tests to exceed their
+five-second timeout. No test timeout or existing practice code was changed.
+Production-preview Chromium checked all ten examples and both comparisons at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. Checks covered
+12-hour-only child-facing times, exact geometry, labeled contexts/symbols,
+vertical sequence and responsive comparison order, navigation boundaries,
+keyboard Enter/Tab, heading/Home focus, touch-target sizes and no horizontal
+overflow or browser errors. Existing lessons and every practice entry passed
+browser smoke checks, including keyboard movement of setting sliders. Desktop
+and narrow-phone screenshots were visually inspected.
+Phone/tablet checks use Chromium emulation; physical devices, Safari/WebKit,
+Firefox and screen-reader announcements were not verified. Complete existing
+practice flows are covered by the automated suite; browser regression coverage
+is smoke testing. No scoring, persistence, audio or 24-hour teaching is added.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -243,6 +280,6 @@ verification; it is not a production deployment server.
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
-- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, elapsed/remaining-time lesson, snapping geometry, and navigation/interaction tests
+- `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, elapsed/remaining-time lesson/practice, parts-of-day lesson/classification, snapping geometry, and navigation/interaction tests
 
 No backend, credentials, external fonts, or third-party services are required.

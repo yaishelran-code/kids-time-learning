@@ -6,8 +6,16 @@ import { FiveMinutesLesson } from './learning/FiveMinutesLesson';
 import { ExactMinutesLesson } from './learning/ExactMinutesLesson';
 import { RelativeTimeLesson } from './learning/RelativeTimeLesson';
 import { AnalogClock } from './components/AnalogClock';
+import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 
 export function App() {
+  const [dayPeriods, setDayPeriods] = useState(false);
+  const dayPeriodsButton = useRef<HTMLButtonElement>(null);
+  const wasDayPeriods = useRef(false);
+  useEffect(() => {
+    if (wasDayPeriods.current && !dayPeriods) dayPeriodsButton.current?.focus();
+    wasDayPeriods.current = dayPeriods;
+  }, [dayPeriods]);
   const [relativeTime, setRelativeTime] = useState(false);
   const relativeTimeButton = useRef<HTMLButtonElement>(null);
   const wasRelativeTime = useRef(false);
@@ -50,6 +58,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (dayPeriods) return <DayPeriodsLesson onHome={() => setDayPeriods(false)} />;
   if (relativeTime) return <RelativeTimeLesson onHome={() => setRelativeTime(false)} />;
   if (exactMinutes) return <ExactMinutesLesson onHome={() => setExactMinutes(false)} />;
   if (minutes) return <FiveMinutesLesson onHome={() => setMinutes(false)} />;
@@ -75,6 +84,7 @@ export function App() {
       <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)}>לימוד דקות</button>
       <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)}>לימוד דקות מדויקות</button>
       <button ref={relativeTimeButton} className="secondary-button exercise-entry" type="button" onClick={() => setRelativeTime(true)}>כמה זמן עבר ונשאר?</button>
+      <button ref={dayPeriodsButton} className="secondary-button exercise-entry" type="button" onClick={() => setDayPeriods(true)}>לימוד חלקי היום</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
