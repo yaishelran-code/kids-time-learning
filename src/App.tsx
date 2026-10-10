@@ -4,9 +4,17 @@ import { HalfHoursLesson } from './learning/HalfHoursLesson';
 import { QuarterHoursLesson } from './learning/QuarterHoursLesson';
 import { FiveMinutesLesson } from './learning/FiveMinutesLesson';
 import { ExactMinutesLesson } from './learning/ExactMinutesLesson';
+import { RelativeTimeLesson } from './learning/RelativeTimeLesson';
 import { AnalogClock } from './components/AnalogClock';
 
 export function App() {
+  const [relativeTime, setRelativeTime] = useState(false);
+  const relativeTimeButton = useRef<HTMLButtonElement>(null);
+  const wasRelativeTime = useRef(false);
+  useEffect(() => {
+    if (wasRelativeTime.current && !relativeTime) relativeTimeButton.current?.focus();
+    wasRelativeTime.current = relativeTime;
+  }, [relativeTime]);
   const [exactMinutes, setExactMinutes] = useState(false);
   const exactMinutesButton = useRef<HTMLButtonElement>(null);
   const wasExactMinutes = useRef(false);
@@ -42,6 +50,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (relativeTime) return <RelativeTimeLesson onHome={() => setRelativeTime(false)} />;
   if (exactMinutes) return <ExactMinutesLesson onHome={() => setExactMinutes(false)} />;
   if (minutes) return <FiveMinutesLesson onHome={() => setMinutes(false)} />;
   if (quarterHours) return <QuarterHoursLesson onHome={() => setQuarterHours(false)} />;
@@ -65,6 +74,7 @@ export function App() {
       <button ref={quarterHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setQuarterHours(true)}>לימוד רבע שעה</button>
       <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)}>לימוד דקות</button>
       <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)}>לימוד דקות מדויקות</button>
+      <button ref={relativeTimeButton} className="secondary-button exercise-entry" type="button" onClick={() => setRelativeTime(true)}>כמה זמן עבר ונשאר?</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );
