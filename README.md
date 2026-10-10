@@ -5,9 +5,39 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, and **היום שלי**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, **היום שלי**, **מאיפה מתחילים?**, and **מבנה השעון**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
+
+- Baseline (Issue #43): **מאיפה מתחילים?** opens an optional 12-question
+  knowledge check: two questions each for hour hands, minute hands, whole hours,
+  half hours, quarter hours and basic digital reading. Every question offers
+  **עדיין לא יודע/ת**. One response locks the choices and receives only neutral
+  **תודה, ממשיכים** feedback; the child advances explicitly. There are no hints,
+  retries, revealed solutions or numeric scores. Assessment clock titles do not
+  announce the time being tested. Time choices are at least seven minutes apart.
+  A skill is considered familiar in this check only when both answers are correct.
+  Difficulty with either hand or digital reading recommends clock structure;
+  otherwise the first unfamiliar whole/half/quarter-hour topic is recommended.
+  If all are familiar, the recommendation opens the existing five-minute lesson.
+  This is a starting suggestion, not a mastery judgement; Home still offers other
+  topics. Entry is manual, with no automatic assessment or adaptive practice.
+  Only completed per-skill results and the recommendation are saved in a separate
+  versioned local-storage key. Reentry restores the recommendation; a new check
+  replaces it only on completion. Partial exit/reload leaves the previous saved
+  result intact. Corrupt/blocked reads warn without overwriting data. Failed writes
+  keep the new recommendation visible in memory, preserve prior saved data and
+  offer retry. Refreshing or leaving can lose an unsaved new recommendation.
+  My Day storage remains separate; no sync, backup or parent report is added.
+
+- Clock structure (added for Issue #43): the short **מבנה השעון** lesson is
+  available directly from Home and as a baseline recommendation. It explains
+  the short purple hour hand, long green minute hand, twelve clock numbers,
+  twelve hours per hour-hand rotation and 60 minutes per minute-hand rotation.
+  Five accurate clock states show 7:00 → 7:15 → 7:30 → 7:45 → 8:00 with synchronized
+  12-hour LTR digital times. Children can step back/forward, replay the full rotation,
+  continue to the existing whole-hours lesson or return Home. Only navigation
+  needed for this lesson and assessment was added; Issues #24 and #27 remain separate.
 
 - My Day (Issue #40): Home includes **היום שלי**. Children add a named daily
   activity with native touch-friendly hour (1–12), minute (00–59) and day-period
@@ -348,6 +378,35 @@ simulated; browser storage may be cleared by users or browser settings. There is
 no backup or cross-device synchronization. Previously saved data survives failed
 writes, but unsaved in-memory changes can be lost on refresh or leaving My Day.
 
+Issue #43 verification passed all 177 automated tests across 18 files using
+standard `npm test` with default timeouts, plus TypeScript, production build and
+`git diff --check`. Thirteen new tests verify six skills/twelve questions, unique
+answers, minimum time-choice spacing, all 4,096 correct/incorrect response patterns,
+unknown answers, neutral feedback/locking, accurate assessment/lesson clocks,
+non-revealing clock titles, all recommended lesson routes, reload/reentry,
+partial-exit preservation, replacement only after completion, separate My Day
+storage, corrupt/blocked reads and write-failure retry.
+Browser verification ran separately against the production build in Chromium at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. Each size completed
+both an all-correct and an all-unknown assessment, checked saved recommendations
+and partial exit, opened all five recommendation destinations, completed the
+structure lesson's 60-minute rotation and continued to whole hours. Checks also
+covered exact hand geometry, neutral feedback, locking, 12-hour LTR times, RTL,
+keyboard Enter/Home focus, emulated touch, control sizes and horizontal overflow.
+Existing lessons and every practice entry passed browser smoke checks; setting
+sliders responded to keyboard arrows. My Day's saved activity and Issue #42 field
+placement remained correct. Separate simulated corrupt/blocked reads and failed
+writes/retry passed. No browser runtime errors occurred. Desktop/phone screenshots
+were visually inspected.
+Verification uses Chromium emulation, not physical iOS/Android devices;
+Safari/WebKit, Firefox and screen-reader announcements were not verified.
+Existing practice completion flows are covered by automated tests; browser
+regression coverage is smoke testing. Storage fault cases are simulated. Saved
+recommendations belong only to this browser/device/origin and may be cleared by
+browser settings; there is no backup or cross-device synchronization. No broader
+navigation redesign (#24), minute-button renaming (#27), adaptive practice,
+scoring, parent PIN or parent report is introduced.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -355,6 +414,8 @@ verification; it is not a production deployment server.
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
+- `src/baseline/`: fixed assessment questions, recommendation rules, versioned local storage, assessment screen and tests
+- `src/learning/ClockStructureLesson.tsx`: introductory hands/numbers/rotation lesson
 - `src/myDay/`: personal activity screen, time validation, local storage and tests
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
