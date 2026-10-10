@@ -101,6 +101,23 @@ Hebrew RTL layout; digital times remain LTR.
   Previous/next boundaries, example progress and Home follow existing navigation
   and focus patterns. No interactive relative-time practice, overnight durations,
   scoring or persistence is introduced; Issues #24 and #27 remain separate.
+
+- Relative-time practice (Issue #34): three entries in the elapsed/remaining lesson
+  open twelve elapsed-time questions, twelve remaining-time questions and twenty
+  mixed questions. Fixed everyday stories cover whole hours, minutes within an
+  hour, minutes across an hour and hours plus minutes, including twelve, with
+  explicit day periods. Same-day durations are five-minute multiples up to three
+  hours. Two read-only clocks retain visible LTR digital times and event roles.
+  Three duration choices have one unique correct answer, rotate its position,
+  and are at least ten minutes apart (meeting the seven-minute minimum); spacing
+  compares duration values directly, not cyclic clock times. Explanations and
+  decomposition stay hidden until a correct answer. Friendly retries, feedback
+  clearing, locking, progress, completion and restart follow existing practice
+  patterns. Return to learning preserves the example and restores entry focus;
+  Home is available during practice and on completion. Issues #24 and #27 remain
+  separate. No end-time calculation, overnight intervals, 24-hour teaching,
+  scoring or persistence is added.
+
 There is no 24-hour teaching, scoring, login, database, audio or parent PIN yet.
 
 ## Run locally
@@ -196,6 +213,26 @@ smoke checks; existing setting sliders responded to keyboard input. No browser
 runtime or console errors occurred. Desktop and narrow-phone screenshots were
 visually inspected. Phone/tablet checks use Chromium emulation; physical devices,
 Safari/WebKit, Firefox and screen-reader announcements were not verified.
+
+Issue #34 verification passed all 117 automated tests across 14 files, TypeScript,
+production build and `git diff --check`. Independent fixtures verify same-day
+elapsed/remaining durations, including hour boundaries and twelve. Tests scan all
+44 questions for one correct answer, distinct duration values/labels, and every
+pair's spacing; rendered tests cover both clocks' geometry, roles and day periods,
+hidden explanations, retries, clearing feedback, locking, completion, reset,
+lesson preservation and focus restoration. The expanded relative-time tests also
+passed separately after adding clock geometry assertions.
+Production-preview Chromium completed all 44 questions at 1280×900, 390×844,
+844×390, 768×1024, 1024×768 and 320×568. Every size checked answer rotation,
+spacing, hidden/revealed explanations, retries, locking, completion, restart,
+lesson preservation, focus restoration, RTL/LTR, touch-target sizes and absence
+of horizontal overflow or browser errors. Keyboard Tab/Enter selection and
+existing half/quarter/five/exact-minute setting practice passed smoke checks.
+Desktop and narrow-phone screenshots were visually inspected. Duration choices
+stack on small screens to keep Hebrew labels readable.
+Phone/tablet checks use Chromium emulation, not physical devices; Safari/WebKit,
+Firefox and screen-reader announcements were not verified. Practice progress
+remains session-only and is reset on reentry, matching the existing flows.
 
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
