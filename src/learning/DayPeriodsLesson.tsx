@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime } from './clockTime';
 import { dayExamples, dayPeriodAt, dayPeriods, sameClockPairs, type DayExample } from './dayPeriods';
+import { DayPeriodsPractice } from './DayPeriodsPractice';
+import { dayPracticeTitles, type DayPracticeMode } from './dayPeriodPractice';
 
 function ContextClock({ example }: { example: DayExample }) {
   const period = dayPeriodAt(example.minutes);
@@ -18,8 +20,16 @@ function ContextClock({ example }: { example: DayExample }) {
 
 export function DayPeriodsLesson({ onHome }: { onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const [practice, setPractice] = useState<DayPracticeMode | null>(null);
+  const previousPractice = useRef<DayPracticeMode | null>(null);
+  const entries = useRef<Partial<Record<DayPracticeMode, HTMLButtonElement | null>>>({});
+  useEffect(() => {
+    if (previousPractice.current && !practice) entries.current[previousPractice.current]?.focus();
+    previousPractice.current = practice;
+  }, [practice]);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); }, [index]);
+  if (practice) return <DayPeriodsPractice key={practice} mode={practice} onLesson={() => setPractice(null)} onHome={onHome} />;
   const example = dayExamples[index];
   return <main className="home" dir="rtl">
     <header>
@@ -57,6 +67,10 @@ export function DayPeriodsLesson({ onHome }: { onHome: () => void }) {
         <p>המחוגים זהים, אבל חלק היום, הסיפור והסמל שונים.</p>
       </section>)}
     </section>
+    <nav className="lesson-controls exercise-navigation" aria-label="תרגול חלקי היום">
+      {(Object.keys(dayPracticeTitles) as DayPracticeMode[]).map(mode => <button key={mode} type="button" className="secondary-button"
+        ref={element => { entries.current[mode] = element; }} onClick={() => setPractice(mode)}>{dayPracticeTitles[mode]}</button>)}
+    </nav>
     <button type="button" className="secondary-button home-button" onClick={onHome}>חזרה לבית</button>
   </main>;
 }
