@@ -6,9 +6,17 @@ import { FiveMinutesLesson } from './learning/FiveMinutesLesson';
 import { ExactMinutesLesson } from './learning/ExactMinutesLesson';
 import { RelativeTimeLesson } from './learning/RelativeTimeLesson';
 import { AnalogClock } from './components/AnalogClock';
+import { MyDay } from './myDay/MyDay';
 import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 
 export function App() {
+  const [myDay, setMyDay] = useState(false);
+  const myDayButton = useRef<HTMLButtonElement>(null);
+  const wasMyDay = useRef(false);
+  useEffect(() => {
+    if (wasMyDay.current && !myDay) myDayButton.current?.focus();
+    wasMyDay.current = myDay;
+  }, [myDay]);
   const [dayPeriods, setDayPeriods] = useState(false);
   const dayPeriodsButton = useRef<HTMLButtonElement>(null);
   const wasDayPeriods = useRef(false);
@@ -58,6 +66,7 @@ export function App() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (myDay) return <MyDay onHome={() => setMyDay(false)} />;
   if (dayPeriods) return <DayPeriodsLesson onHome={() => setDayPeriods(false)} />;
   if (relativeTime) return <RelativeTimeLesson onHome={() => setRelativeTime(false)} />;
   if (exactMinutes) return <ExactMinutesLesson onHome={() => setExactMinutes(false)} />;
@@ -85,6 +94,7 @@ export function App() {
       <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)}>לימוד דקות מדויקות</button>
       <button ref={relativeTimeButton} className="secondary-button exercise-entry" type="button" onClick={() => setRelativeTime(true)}>כמה זמן עבר ונשאר?</button>
       <button ref={dayPeriodsButton} className="secondary-button exercise-entry" type="button" onClick={() => setDayPeriods(true)}>לימוד חלקי היום</button>
+      <button ref={myDayButton} className="secondary-button exercise-entry" type="button" onClick={() => setMyDay(true)}>היום שלי</button>
       <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
     </main>
   );

@@ -5,9 +5,25 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, and **לימוד חלקי היום**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, and **היום שלי**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
+
+- My Day (Issue #40): Home includes **היום שלי**. Children add a named daily
+  activity with native touch-friendly hour (1–12), minute (00–59) and day-period
+  selectors. Incompatible combinations and blank names receive Hebrew guidance.
+  Activities display accurate analog clocks, visible LTR 12-hour digital times
+  and day periods, sorted from midnight with stable insertion order for ties.
+  Editing preserves identity and tie order; deletion requires confirmation and
+  can be cancelled. Empty-state guidance, keyboard labels/focus and Home return
+  are included. Activities have no dates or durations.
+  Local browser storage restores activities after reload/reopening on the same
+  browser/device. Read errors or corrupt data show a warning without automatically
+  overwriting the stored data. Failed writes keep current changes in memory and
+  offer a retry, with a warning that refreshing/leaving may lose those changes.
+  Adding/editing/deleting explicitly saves the current list. No exercise
+  integration, device sync or navigation redesign is included; Issues #24 and
+  #27 remain outside scope.
 
 - Parts of the day (Issue #36): ten fixed, display-only stories cover morning,
   noon, afternoon, evening and night: 7:00 morning, 10:00 morning, 12:00 noon,
@@ -309,6 +325,29 @@ Physical iOS/Android devices, Safari/WebKit, Firefox and screen-reader
 announcements were not verified. Progress remains session-only; no scoring,
 persistence, audio, personal activities or 24-hour teaching is introduced.
 
+Issue #40 verification passed all 164 automated tests across 17 files with the
+standard `npm test` command and default timeouts. Eight new tests cover PRD time
+boundaries, midnight/noon, incompatible selections, stable tie ordering,
+add/edit/delete/cancel, exact hand positions, persistent reload of saved data,
+corrupt/blocked reads and write-failure recovery. TypeScript, production build
+and whitespace checks passed. The focused activity suite and build checks also
+passed after correcting the selectors' accessible names.
+Browser verification ran separately in production-preview Chromium at
+1280×900, 390×844, 844×390, 768×1024, 1024×768 and 320×568. Checks covered
+empty-state guidance, validation, add/edit/delete confirmation and cancellation,
+reload and reopening in a new tab, midnight/noon and stable tie order, clock
+geometry, 12-hour/LTR time, RTL, native selector touch size, keyboard submission,
+focus restoration, corrupt/blocked reads, simulated quota errors and save retry.
+Existing lessons and every practice entry passed browser smoke checks, including
+keyboard movement of setting sliders. No horizontal overflow or browser errors;
+desktop and narrow-phone list/form screenshots inspected. Additional form and
+long-name deletion-confirmation checks passed at desktop and narrow-phone sizes.
+Phone/tablet checks use Chromium emulation; physical devices, Safari/WebKit,
+Firefox and screen-reader announcements were not verified. Storage failures were
+simulated; browser storage may be cleared by users or browser settings. There is
+no backup or cross-device synchronization. Previously saved data survives failed
+writes, but unsaved in-memory changes can be lost on refresh or leaving My Day.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -316,8 +355,10 @@ verification; it is not a production deployment server.
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
+- `src/myDay/`: personal activity screen, time validation, local storage and tests
 - `src/styles.css`: responsive styling
 - `src/App.test.tsx`: initial screen and clock rendering checks
 - `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, elapsed/remaining-time lesson/practice, parts-of-day lesson/practice/classification, snapping geometry, and navigation/interaction tests
 
-No backend, credentials, external fonts, or third-party services are required.
+Personal activities are saved in local browser storage; no backend, credentials,
+external fonts, or third-party services are required.
