@@ -8,7 +8,7 @@ import { fullHourFromPoint } from './fullHour';
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement;
 let root: Root;
-beforeEach(() => {
+beforeEach(() => { localStorage.clear();
   container = document.createElement('div');
   document.body.append(container);
   root = createRoot(container);
@@ -80,6 +80,7 @@ describe('full-hour exercise', () => {
       }
     }
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את התרגול 🎉');
+    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     expect(document.activeElement).toBe(container.querySelector('h1'));
     expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד']);
     expect(button('התרגיל הבא')).toBeUndefined();
@@ -118,6 +119,7 @@ describe('full-hour exercise', () => {
     setHour(12);
     click('בדיקה');
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את התרגול 🎉');
+    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('חזרה ללימוד');
     expect(container.querySelector('h1')?.textContent).toBe('שעות שלמות');
     expect(container.querySelector('.day-period')?.textContent).toContain('בערב');

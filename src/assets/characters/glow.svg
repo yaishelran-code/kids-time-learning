@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260">
+  <!-- Original character: Zohar, created for Kids Time Learning. -->
+  <circle cx="120" cy="126" r="108" fill="#e9eeff"/>
+  <g stroke="#293550" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M84 129Q117 119 149 132L178 205 123 218 64 203Z" fill="#98a9ef"/>
+    <path d="M97 190 91 232 114 232 124 195M132 192 143 232 165 232 153 190" fill="#455a9f"/>
+    <path d="M92 135Q123 127 149 141L154 198Q123 208 86 196Z" fill="#455a9f"/>
+    <path d="M92 144 64 169 77 182 103 164M151 145 172 164 165 179 140 161" fill="#455a9f"/>
+    <path d="M78 86Q80 43 122 39Q163 44 165 89L158 121Q123 147 85 121Z" fill="#455a9f"/>
+    <path d="M85 80Q122 65 157 82L151 104Q120 115 91 101Z" fill="#ffddb9"/>
+    <path d="M101 89 106 88M135 88 140 90" fill="none"/>
+    <path d="M101 122Q121 133 142 121" stroke="#fff" fill="none"/>
+    <path d="M82 126Q120 142 160 127L155 145Q119 155 87 142Z" fill="#d6deff"/>
+    <path d="M124 153Q107 162 113 179Q125 193 139 178Q119 181 124 153Z" fill="#ffe58a" stroke-width="3"/>
+    <path d="M169 177Q182 157 194 178" fill="none"/>
+    <path d="M164 180H199L202 213Q184 227 162 213Z" fill="#ffe58a"/>
+    <path d="M184 187Q171 194 177 207Q188 215 194 202Q180 204 184 187Z" fill="#fff8d8" stroke-width="2"/>
+    <path d="M47 55V71M39 63H55M186 61V75M179 68H193" fill="none" stroke="#879bdc" stroke-width="3"/>
+  </g>
+</svg>

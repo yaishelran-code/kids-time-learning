@@ -1,3 +1,4 @@
+import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime, timeFromMinutes, type ClockTime } from './clockTime';
@@ -40,6 +41,7 @@ export function durationChoices(total: number, index: number): number[] {
 }
 export function RelativeTimePractice({ mode, onLesson, onHome }: { mode: RelativeTimePracticeMode; onLesson: () => void; onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const reward = usePracticeRewards(`relative-${mode}`, index);
   const [selected, setSelected] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
   const [completed, setCompleted] = useState(false);
@@ -71,17 +73,19 @@ export function RelativeTimePractice({ mode, onLesson, onHome }: { mode: Relativ
         {durationChoices(total, index).map(value => <button key={value} type="button" className="secondary-button" aria-pressed={selected === value}
           disabled={feedback === 'correct'} onClick={() => { setSelected(value); setFeedback('idle'); }}>{durationLabel(value)}</button>)}
       </div>
-      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? 'כל הכבוד! תשובה נכונה 🎉' : 'כמעט! נסו שוב'}</p>
+      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? reward.message : 'כמעט! נסו שוב'}</p>
       {feedback === 'correct' && <section className="relative-calculation" aria-label="הסבר החישוב">
         <p>סופרים קדימה לפי סדר האירועים וחלקי היום.</p>
         <p>{hours > 0 && <>מ־<bdi dir="ltr">{formatTime(question.start)}</bdi> עד <bdi dir="ltr">{formatTime(anchor)}</bdi>: {durationLabel(hours * 60)}. </>}{minutes > 0 && <>מ־<bdi dir="ltr">{formatTime(anchor)}</bdi> עד <bdi dir="ltr">{formatTime(question.end)}</bdi>: עוד {minutes / 5} צעדים של 5 דקות, שהם {minutes} דקות</>}.</p>
         <p className="relative-answer">{question.kind === 'elapsed' ? 'עברו' : 'נשארו'} {durationLabel(total)}.</p>
       </section>}
-      {feedback !== 'correct' ? <button type="button" className="start-button" disabled={selected === null} onClick={() => setFeedback(selected === total ? 'correct' : 'incorrect')}>בדיקה</button>
+      {feedback !== 'correct' ? <button type="button" className="start-button" disabled={selected === null} onClick={() => { const correct = selected === total; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={next} type="button" className="start-button" onClick={() => { if (index === questions.length - 1) setCompleted(true); else { setIndex(index + 1); clear(); } }}>התרגיל הבא</button>}
     </>}
+    {feedback === 'correct' && !completed && reward.notice}
+    {completed && <>{reward.summary}{reward.notice}</>}
     <nav className="lesson-controls exercise-navigation" aria-label={completed ? 'סיום התרגול' : 'חזרה'}>
-      {completed && <button type="button" className="start-button" onClick={() => { setIndex(0); clear(); setCompleted(false); }}>תרגלו שוב</button>}
+      <button type="button" className="start-button" onClick={() => { reward.restart(); setIndex(0); clear(); setCompleted(false); }}>{completed ? 'תרגלו שוב' : 'התחלה מחדש — רצף תגמולים חדש'}</button>
       <button type="button" className="secondary-button" onClick={onLesson}>חזרה ללימוד</button>
       <button type="button" className="secondary-button" onClick={onHome}>חזרה לבית</button>
     </nav>

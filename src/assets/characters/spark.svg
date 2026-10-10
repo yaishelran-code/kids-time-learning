@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260">
+  <!-- Original character: Nitzotz, created for Kids Time Learning. -->
+  <circle cx="120" cy="124" r="108" fill="#fff2d6"/>
+  <g stroke="#293550" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M92 191 83 233 105 233 120 194M128 193 138 233 160 233 151 184" fill="#7357c8"/>
+    <path d="M90 132Q70 148 60 170L75 181 98 160M149 135 174 113 187 129 162 159" fill="#7357c8"/>
+    <path d="M95 131Q120 120 147 134L159 195Q121 214 82 192Z" fill="#7357c8"/>
+    <path d="M77 83Q76 30 120 32Q169 34 166 84L158 123Q119 151 83 123Z" fill="#7357c8"/>
+    <path d="M86 73Q119 56 157 73L151 100Q120 111 90 99Z" fill="#ffddb9"/>
+    <path d="M98 84 106 82M134 82 142 84" fill="none"/>
+    <path d="M98 117Q121 129 144 116" fill="none" stroke="#fff"/>
+    <path d="M80 125Q122 141 161 123L160 140Q119 156 83 141Z" fill="#ff9a48"/>
+    <path d="M155 133Q186 150 201 146L188 167 156 145" fill="#ff9a48"/>
+    <path d="M120 157 126 169 141 171 130 181 132 195 120 188 107 195 110 181 99 171 114 169Z" fill="#ffe06c" stroke-width="3"/>
+    <path d="M107 34 117 18 133 35" fill="#ff9a48"/>
+    <path d="M181 79 181 99M171 89 191 89" stroke="#e6a136" stroke-width="4"/>
+  </g>
+</svg>

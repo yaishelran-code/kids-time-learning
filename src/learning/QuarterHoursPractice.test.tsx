@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readLedger } from '../rewards/ledger';
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +11,7 @@ import { quarterExercises, quarterPracticeTitles, type QuarterPracticeMode } fro
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement;
 let root: Root;
-beforeEach(() => { container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
+beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
 function button(label: string) { const b = [...container.querySelectorAll('button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
 function click(label: string) { act(() => button(label).click()); }
@@ -60,7 +61,7 @@ describe('quarter-hour practice', () => {
         click(formatTime(target));expect(status()).toBe('');
       }
       expect(container.textContent).not.toContain('התרגיל הבא');
-      click('בדיקה');expect(status()).toBe('כל הכבוד! תשובה נכונה 🎉');
+      click('בדיקה');expect(status()).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       expect(document.activeElement).toBe(button('התרגיל הבא'));
       expect(container.querySelector('[role="slider"]')).toBeNull();
       expect([...container.querySelectorAll('.reading-answers button')].every(el => (el as HTMLButtonElement).disabled)).toBe(true);
@@ -69,6 +70,9 @@ describe('quarter-hour practice', () => {
     }
     if(mode !== 'setting') expect(new Set(positions).size).toBe(3);
     expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(readLedger().ledger.stars).toBe(quarterExercises[mode].length);
+    expect(readLedger().ledger.runs[`quarter-${mode}`]!.awarded).toHaveLength(quarterExercises[mode].length);
+    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * quarterExercises[mode].length} נקודות ו־${quarterExercises[mode].length} כוכבים.`);
     expect(container.querySelector('h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'החצאים והרבעים');
     expect(container.textContent).not.toContain('תרגיל 1 מתוך');
     click('תרגלו שוב');expect(status()).toBe('');expect(container.querySelector('[aria-pressed="true"]')).toBeNull();

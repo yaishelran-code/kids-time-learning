@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260">
+  <!-- Original character: Tal, created for Kids Time Learning. -->
+  <circle cx="120" cy="126" r="108" fill="#e2f5e8"/>
+  <g stroke="#293550" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M90 192 84 232 105 232 115 195M133 194 141 232 162 232 151 190" fill="#168779"/>
+    <path d="M91 140 60 118 46 130 77 162M151 140 173 169 158 180 140 158" fill="#168779"/>
+    <path d="M90 134Q122 123 148 138L160 199Q121 213 82 196Z" fill="#168779"/>
+    <path d="M76 91Q75 41 120 43Q168 42 169 93L158 124Q118 150 83 122Z" fill="#168779"/>
+    <path d="M85 83Q120 67 159 84L151 106Q120 119 90 105Z" fill="#ffddb9"/>
+    <path d="M98 96Q103 90 108 96M133 96Q138 90 143 96" fill="none"/>
+    <path d="M101 123Q121 134 141 122" stroke="#fff" fill="none"/>
+    <path d="M81 137 157 143 156 158 84 152Z" fill="#9adb86"/>
+    <path d="M83 66Q99 23 163 26Q156 69 83 66Z" fill="#9adb86"/>
+    <path d="M90 61 146 37" fill="none" stroke="#168779" stroke-width="3"/>
+    <path d="M105 169Q120 156 134 170Q134 186 120 195Q106 186 105 169Z" fill="#c3eeaa"/>
+    <path d="M120 171V186" stroke="#168779" stroke-width="3"/>
+    <path d="M177 193H211L205 222H183Z" fill="#e59b73"/>
+    <path d="M194 192V165M193 182Q169 182 175 164Q191 162 193 182M195 173Q198 153 215 159Q219 177 195 173" fill="#9adb86" stroke-width="3"/>
+    <path d="M44 112 40 97M51 111 56 98" fill="none" stroke="#168779" stroke-width="3"/>
+  </g>
+</svg>

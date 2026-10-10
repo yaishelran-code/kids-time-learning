@@ -1,3 +1,4 @@
+import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime } from './clockTime';
@@ -6,6 +7,7 @@ import { dayPracticeChoices, dayPracticeQuestions, dayPracticeTitles, type DayPe
 
 export function DayPeriodsPractice({ mode, onLesson, onHome }: { mode: DayPracticeMode; onLesson: () => void; onHome: () => void }) {
   const [index, setIndex] = useState(0);
+  const reward = usePracticeRewards(`day-${mode}`, index);
   const [selected, setSelected] = useState<(DayPeriodId | null)[]>([]);
   const [feedback, setFeedback] = useState<'idle' | 'correct' | 'incorrect'>('idle');
   const [completed, setCompleted] = useState(false);
@@ -38,17 +40,19 @@ export function DayPeriodsPractice({ mode, onLesson, onHome }: { mode: DayPracti
           </div>
         </section>)}
       </div>
-      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? 'כל הכבוד! תשובה נכונה 🎉' : 'כמעט! קראו שוב את הרמזים ונסו שוב'}</p>
+      <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? reward.message : 'כמעט! קראו שוב את הרמזים ונסו שוב'}</p>
       {feedback === 'correct' && <section className="day-practice-explanation" aria-label="הסבר התשובה">
         {comparing && <p>המחוגים זהים, אבל ההקשר בסיפור שונה.</p>}
         {question.stories.map((item, storyIndex) => <p key={storyIndex}>סיפור {storyIndex + 1}: <strong>{dayPeriodAt(item.minutes).name}</strong> — {item.clue}</p>)}
       </section>}
       {feedback !== 'correct' ? <button className="start-button" type="button" disabled={!question.stories.every((_, i) => selected[i] != null)}
-        onClick={() => setFeedback(question.stories.every((item, i) => selected[i] === dayPeriodAt(item.minutes).id) ? 'correct' : 'incorrect')}>בדיקה</button>
+        onClick={() => { const correct = question.stories.every((item, i) => selected[i] === dayPeriodAt(item.minutes).id); if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={next} className="start-button" type="button" onClick={() => { if (index === questions.length - 1) setCompleted(true); else { setIndex(index + 1); clear(); } }}>התרגיל הבא</button>}
     </>}
+    {feedback === 'correct' && !completed && reward.notice}
+    {completed && <>{reward.summary}{reward.notice}</>}
     <nav className="lesson-controls exercise-navigation" aria-label={completed ? 'סיום התרגול' : 'חזרה'}>
-      {completed && <button className="start-button" type="button" onClick={() => { setIndex(0); clear(); setCompleted(false); }}>תרגלו שוב</button>}
+      <button className="start-button" type="button" onClick={() => { reward.restart(); setIndex(0); clear(); setCompleted(false); }}>{completed ? 'תרגלו שוב' : 'התחלה מחדש — רצף תגמולים חדש'}</button>
       <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
       <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>
     </nav>

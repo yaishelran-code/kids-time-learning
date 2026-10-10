@@ -5,9 +5,53 @@ The product requirements are in [docs/PRD.md](docs/PRD.md).
 
 ## Current scope
 
-Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, **היום שלי**, **מאיפה מתחילים?**, and **מבנה השעון**.
+Home offers full-hour learning, half-hour learning, **לימוד רבע שעה**, **לימוד דקות**, **לימוד דקות מדויקות**, **כמה זמן עבר ונשאר?**, **לימוד חלקי היום**, **היום שלי**, **מאיפה מתחילים?**, **מבנה השעון**, and **האוסף שלי**.
 All lessons pair a read-only analog clock with a visible digital time in a
 Hebrew RTL layout; digital times remain LTR.
+
+- Practice rewards (Issue #46): every correctly solved practice question earns
+  10 points and one star, including success after retries. Mistakes never subtract
+  rewards. All 20 modes across eight practice components use the same ledger;
+  two-story comparisons earn once only when both answers are right. Baseline,
+  lesson viewing and My Day do not earn rewards. Success announces
+  **כל הכבוד! קיבלת כוכב ו־10 נקודות**; completion summarizes that run's earnings.
+  Home displays lifetime totals and **האוסף שלי**.
+  Each practice mode has a persisted run identity and awarded question indices.
+  Totals, unlocks and the deduplication ledger are written together immediately
+  after success, including unfinished practice. Repeated checks, screen navigation,
+  refresh/reopening and save retries do not reward an already-awarded question.
+  Reentry still displays question one, following existing practice behavior; its
+  prior rewards remain credited and are not awarded again. **התחלה מחדש — רצף
+  תגמולים חדש** starts a new reward run during unfinished practice; **תרגלו שוב**
+  does so after completion. Restart retains lifetime totals and unlocked characters.
+  The per-mode ledger is bounded to current runs; totals include older runs.
+  Future question-list changes must version/migrate the ledger to preserve question
+  identity rather than silently reusing indices for different questions.
+
+- Collectible characters (Issue #46): three original static SVG ninja illustrations
+  included in `src/assets/characters/`: **ניצוץ**, **טל**, and **זוהר**. Their distinct
+  scarves, leaf hat/garden friend and moon lantern/cape were created for this
+  project; no commercial characters or emoji substitutes are used. Characters
+  unlock at 10/20/30 lifetime stars without consuming them, and remain open.
+  Collection cards show illustrations, Hebrew names, explicit locked/open states,
+  the stars missing for the next character and a positive all-unlocked message.
+  Unlock announcements do not open a modal or block continued practice.
+
+- Reward storage limits: this implementation assumes **one active practice tab**
+  in the same browser/device/origin. Concurrent practice in multiple tabs is not
+  coordinated; separate tabs can overwrite one another's snapshots. There is no
+  cloud synchronization or backup. The versioned reward key is separate from
+  Baseline and My Day. Write failure retains the shared in-memory ledger across
+  navigation, warns and allows saving the current snapshot again without granting
+  anything twice. Refreshing/closing before a successful retry can lose unsaved
+  rewards and unsaved restart/deduplication state; durable guarantees apply to
+  successfully saved state. Corrupt/unreadable data is never automatically reset
+  or overwritten, even after a reward or restart. In that case practice continues
+  with temporary in-memory rewards, persistence is blocked for that session and
+  a warning asks for adult help; there is no destructive automatic recovery.
+  A refresh can retry reading after the underlying problem is resolved.
+  No parent PIN, skill tracking, adaptive difficulty or streak bonuses are added;
+  broader navigation review (#24) and minute-button renaming (#27) remain separate.
 
 - Baseline (Issue #43): **מאיפה מתחילים?** opens an optional 12-question
   knowledge check: two questions each for hour hands, minute hands, whole hours,
@@ -193,7 +237,7 @@ Hebrew RTL layout; digital times remain LTR.
   separate. No end-time calculation, overnight intervals, 24-hour teaching,
   scoring or persistence is added.
 
-There is no 24-hour teaching, scoring, login, database, audio or parent PIN yet.
+There is no 24-hour teaching, login, database, audio or parent PIN yet.
 
 ## Run locally
 
@@ -407,6 +451,34 @@ browser settings; there is no backup or cross-device synchronization. No broader
 navigation redesign (#24), minute-button renaming (#27), adaptive practice,
 scoring, parent PIN or parent report is introduced.
 
+Issue #46 verification passed all 207 automated tests across 19 files with
+standard `npm test` and unchanged default timeouts. Thirty new reward tests cover
+all 20 practice integrations, the 224-question ledger, 10/20/30-star thresholds,
+repeated requests before a React render, wrong-answer retries, one reward for a
+complete comparison, repeated setting success, navigation/remount deduplication,
+explicit restart, per-run summaries, collection states, corrupt/blocked storage
+and failed-write retry. Existing practice completion tests also assert saved
+counts and summaries, and isolate local storage between cases. TypeScript,
+production build and staged whitespace checks passed.
+Separate production-preview Chromium verification completed all 224 questions
+across all 20 modes on desktop (1280×900). At 390×844, 844×390, 768×1024,
+1024×768 and 320×568, the first question of every mode was checked with a wrong
+attempt, success, navigation/reentry, actual page reload and explicit restart.
+At every size these checks confirmed exact totals/deduplication, unlock notices
+without a modal, loaded illustrations, collection/Home focus, no horizontal
+overflow or browser errors, and no rewards for Baseline, lesson viewing or My Day.
+Desktop completed-run summaries and character thresholds/locked states passed;
+separate corrupted-data and failed-save navigation/retry/reload checks passed.
+Desktop and phone collection screenshots were visually inspected. Final-build
+focused checks also verified singular Hebrew star labels, a completed Baseline
+without rewards and unavailable storage reads.
+Browser coverage uses Chromium with mouse, keyboard and emulated touch. Physical
+iOS/Android devices, Safari/WebKit, Firefox and screen-reader announcements were
+not verified. Full practice completion is covered by automated tests and desktop
+browser checks; smaller viewports cover every mode's first question and reward
+lifecycle. Storage faults are simulated. Single-active-tab and failed-storage
+limitations are described above; simultaneous multi-tab practice was not tested.
+
 Vite writes production assets to `dist/`. Preview serves that build for local
 verification; it is not a production deployment server.
 
@@ -414,6 +486,8 @@ verification; it is not a production deployment server.
 
 - `src/App.tsx`: Hebrew Home screen and learning entry
 - `src/components/AnalogClock.tsx`: reusable minute-aware SVG clock with optional full/half/quarter/five/exact-minute interaction
+- `src/rewards/`: shared reward ledger/provider, per-run summaries, collection screen and tests
+- `src/assets/characters/`: three original collectible ninja SVG illustrations
 - `src/baseline/`: fixed assessment questions, recommendation rules, versioned local storage, assessment screen and tests
 - `src/learning/ClockStructureLesson.tsx`: introductory hands/numbers/rotation lesson
 - `src/myDay/`: personal activity screen, time validation, local storage and tests
@@ -421,5 +495,5 @@ verification; it is not a production deployment server.
 - `src/App.test.tsx`: initial screen and clock rendering checks
 - `src/learning/`: full-hour and half-hour lessons/practice, quarter-hour lesson/practice, five-minute lesson/practice, exact-minute lesson/practice, elapsed/remaining-time lesson/practice, parts-of-day lesson/practice/classification, snapping geometry, and navigation/interaction tests
 
-Personal activities are saved in local browser storage; no backend, credentials,
+Personal activities, completed baseline recommendations and practice rewards are saved in local browser storage; no backend, credentials,
 external fonts, or third-party services are required.
