@@ -130,6 +130,17 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 .day-comparison-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .day-comparison-grid .digital-time { font-size: 1.8rem; }
 .day-example + .lesson-controls .start-button:disabled { opacity: .5; cursor: default; }
+.day-practice-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.day-practice-story { min-width: 0; padding: 16px; }
+.day-practice-story h2 { margin-top: 0; }
+.day-period-answers { margin-top: 16px; flex-direction: column; align-items: center; }
+.day-period-answers > button { flex: none; width: 100%; font-size: 1.15rem; }
+.day-practice .start-button:disabled { opacity: .5; cursor: default; }
+.day-practice-explanation { padding: 16px; border-radius: 18px; background: #fff; margin-bottom: 16px; }
+@media (max-width: 500px) {
+  .day-practice-pair { grid-template-columns: minmax(0, 1fr); }
+  .day-practice-story .analog-clock { width: min(100%, 260px); }
+}
 @media (max-width: 500px) {
   .day-comparison-grid { grid-template-columns: minmax(0, 1fr); }
   .day-comparison-grid .analog-clock { width: min(100%, 260px); }

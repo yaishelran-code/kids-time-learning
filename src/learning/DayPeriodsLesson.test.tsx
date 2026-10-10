@@ -85,7 +85,8 @@ describe('parts-of-day lesson', () => {
     }
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     expect(container.querySelector('[role="slider"]')).toBeNull();
-    expect([...container.querySelectorAll('button')].map(item => item.textContent)).toEqual(['הדוגמה הקודמת', 'הדוגמה הבאה', 'חזרה לבית']);
+    expect([...container.querySelectorAll('button')].map(item => item.textContent)).toEqual(['הדוגמה הקודמת', 'הדוגמה הבאה',
+      'תרגול זיהוי חלק היום', 'תרגול אותה שעה, הקשר שונה', 'תרגול משולב — חלקי היום', 'חזרה לבית']);
     click('חזרה לבית');
     expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
     expect(document.activeElement).toBe(button('לימוד חלקי היום'));
