@@ -149,3 +149,14 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
   .duration-answers { flex-direction: column; align-items: center; }
   .duration-answers > button { flex: none; width: 100%; }
 }
+.activity-form { margin-top: 24px; }
+.activity-form label { display: grid; gap: 8px; text-align: start; margin-bottom: 16px; font-weight: 700; }
+.activity-form input, .activity-form select { width: 100%; min-width: 0; min-height: 48px; padding: 10px; font: inherit; border: 2px solid #53647c; border-radius: 12px; background: #fff; color: #243450; }
+.activity-time-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.activity-list { list-style: none; padding: 0; margin-top: 24px; }
+.activity-list .analog-clock { width: min(100%, 220px); }
+.activity-list h2 { overflow-wrap: anywhere; }
+.activity-time { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 8px; }
+.storage-message { padding: 16px; border: 2px solid #53647c; border-radius: 18px; margin-bottom: 20px; background: #fff; }
+.empty-day { padding: 24px 0; }
+.my-day #delete-description { overflow-wrap: anywhere; }
