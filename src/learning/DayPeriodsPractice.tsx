@@ -1,3 +1,4 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -17,8 +18,11 @@ export function DayPeriodsPractice({ mode, onLesson, onHome }: { mode: DayPracti
   useEffect(() => { if (feedback === 'correct') next.current?.focus(); }, [feedback]);
   const questions = dayPracticeQuestions[mode];
   const question = questions[index];
+  const topic = 'day';
+  const help = usePracticeHelp(topic);
   const comparing = question.kind === 'compare';
   function clear() { setSelected([]); setFeedback('idle'); }
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
   return <main className="home day-practice" dir="rtl">
     <header>
       <h1 ref={heading} tabIndex={-1}>{completed ? `כל הכבוד! סיימתם ${dayPracticeTitles[mode]} 🎉` : dayPracticeTitles[mode]}</h1>
@@ -46,7 +50,7 @@ export function DayPeriodsPractice({ mode, onLesson, onHome }: { mode: DayPracti
         {question.stories.map((item, storyIndex) => <p key={storyIndex}>סיפור {storyIndex + 1}: <strong>{dayPeriodAt(item.minutes).name}</strong> — {item.clue}</p>)}
       </section>}
       {feedback !== 'correct' ? <button className="start-button" type="button" disabled={!question.stories.every((_, i) => selected[i] != null)}
-        onClick={() => { const correct = question.stories.every((item, i) => selected[i] === dayPeriodAt(item.minutes).id); if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
+        onClick={() => { const correct = question.stories.every((item, i) => selected[i] === dayPeriodAt(item.minutes).id); if (!help.attempt(correct)) return; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={next} className="start-button" type="button" onClick={() => { if (index === questions.length - 1) setCompleted(true); else { setIndex(index + 1); clear(); } }}>התרגיל הבא</button>}
     </>}
     {feedback === 'correct' && !completed && reward.notice}

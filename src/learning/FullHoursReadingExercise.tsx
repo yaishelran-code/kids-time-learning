@@ -1,3 +1,4 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -19,12 +20,16 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
   const heading = useRef<HTMLHeadingElement>(null);
   const nextButton = useRef<HTMLButtonElement>(null);
   const target = exercises[index];
+  const topic = 'full';
+  const help = usePracticeHelp(topic);
   const correct = selected === target.hour;
 
   useEffect(() => { heading.current?.focus(); }, [index, completed]);
   useEffect(() => { if (correct) nextButton.current?.focus(); }, [correct]);
 
   function reset() { reward.restart(); setIndex(0); setSelected(null); setCompleted(false); }
+
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
 
   if (completed) return (
     <main className="home" dir="rtl">
@@ -52,7 +57,7 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
       <div className="lesson-controls reading-answers" role="group" aria-label="בחרו את השעה">
         {target.answers.map(hour => (
           <button key={hour} className="secondary-button" type="button" aria-pressed={selected === hour}
-            disabled={correct} onClick={() => { if (hour === target.hour) reward.award(); setSelected(hour); }}>
+            disabled={correct} onClick={() => { if (!help.attempt(hour === target.hour)) return; if (hour === target.hour) reward.award(); setSelected(hour); }}>
             <bdi dir="ltr">{hour}:00</bdi>
           </button>
         ))}

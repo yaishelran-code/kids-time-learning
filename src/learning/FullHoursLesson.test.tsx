@@ -45,7 +45,7 @@ describe('full-hour learning flow', () => {
     checkClock(7, 'בבוקר');
     click('חזרה לבית');
     expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
-    expect(container.textContent).toContain('אזור הורים');
+    expect(container.textContent).toContain('אזור הורה');
     expect(document.activeElement?.textContent).toBe('התחל ללמוד');
     click('התחל ללמוד');
     checkClock(7, 'בבוקר');

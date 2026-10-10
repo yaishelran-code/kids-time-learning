@@ -1,3 +1,4 @@
+import { ParentArea, ParentHelpProvider } from './parent/ParentHelp';
 import { Collection, RewardTotals, RewardsProvider } from './rewards/Rewards';
 import { Baseline } from './baseline/Baseline';
 import type { StartingPoint } from './baseline/assessment';
@@ -13,8 +14,15 @@ import { AnalogClock } from './components/AnalogClock';
 import { MyDay } from './myDay/MyDay';
 import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 
-export function App() { return <RewardsProvider><AppScreens /></RewardsProvider>; }
+export function App() { return <ParentHelpProvider><RewardsProvider><AppScreens /></RewardsProvider></ParentHelpProvider>; }
 function AppScreens() {
+  const [parent, setParent] = useState(false);
+  const parentButton = useRef<HTMLButtonElement>(null);
+  const wasParent = useRef(false);
+  useEffect(() => {
+    if (wasParent.current && !parent) parentButton.current?.focus();
+    wasParent.current = parent;
+  }, [parent]);
   const [collection, setCollection] = useState(false);
   const collectionButton = useRef<HTMLButtonElement>(null);
   const wasCollection = useRef(false);
@@ -93,6 +101,7 @@ function AppScreens() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  if (parent) return <ParentArea onHome={() => setParent(false)} />;
   if (collection) return <Collection onHome={() => setCollection(false)} />;
   if (baseline) {
     const onHome = () => { setBaseline(false); setBaselineLesson(null); };
@@ -137,7 +146,7 @@ function AppScreens() {
       <button ref={relativeTimeButton} className="secondary-button exercise-entry" type="button" onClick={() => setRelativeTime(true)}>כמה זמן עבר ונשאר?</button>
       <button ref={dayPeriodsButton} className="secondary-button exercise-entry" type="button" onClick={() => setDayPeriods(true)}>לימוד חלקי היום</button>
       <button ref={myDayButton} className="secondary-button exercise-entry" type="button" onClick={() => setMyDay(true)}>היום שלי</button>
-      <p className="parent-placeholder">אזור הורים <span>— בקרוב</span></p>
+      <button ref={parentButton} type="button" className="secondary-button exercise-entry" onClick={() => setParent(true)}>אזור הורה</button>
     </main>
   );
 }

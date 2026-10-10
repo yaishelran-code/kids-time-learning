@@ -167,3 +167,10 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 .character-collection { display: grid; gap: 16px; }
 .character-card img { display: block; width: min(100%, 240px); height: auto; margin-inline: auto; }
 .character-locked img { filter: grayscale(1); }
+
+.parent-pin { display: grid; gap: 1rem; max-width: 28rem; margin: 1.5rem auto; }
+.parent-pin input { font: inherit; font-size: 1.5rem; min-height: 48px; width: 100%; box-sizing: border-box; text-align: center; direction: ltr; border: 2px solid #7655a4; border-radius: .75rem; }
+.parent-topics { padding-inline-start: 1.5rem; }
+.parent-topics li { margin-block: 1rem; }
+.parent-confirmation { margin-block: 1rem; }
+.parent-confirmation button { margin: .5rem; }

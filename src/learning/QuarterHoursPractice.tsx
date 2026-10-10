@@ -1,3 +1,5 @@
+import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
+import { clockTopic } from '../parent/state';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
@@ -46,6 +48,8 @@ export function QuarterHoursPractice({ mode, onLesson, onHome }: { mode: Quarter
   const heading = useRef<HTMLHeadingElement>(null);
   const nextButton = useRef<HTMLButtonElement>(null);
   const target = quarterExercises[mode][index];
+  const topic = clockTopic(target.minute);
+  const help = usePracticeHelp(topic);
   const answer = formatTime(target);
   const choices: ClockTime[] = [target,
     { hour: target.hour, minute: target.minute === 45 ? 15 : target.minute === 15 ? 45 : target.minute === 0 ? 30 : 0 },
@@ -58,6 +62,7 @@ export function QuarterHoursPractice({ mode, onLesson, onHome }: { mode: Quarter
     reward.restart();
     setIndex(0); setTime(initialTime(quarterExercises[mode][0])); setSelected(null); setFeedback('idle'); setCompleted(false);
   }
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
   return <main className="home" dir="rtl">
     <header>
       <h1 ref={heading} tabIndex={-1}>{completed ? completionTitles[mode] : quarterPracticeTitles[mode]}</h1>
@@ -83,7 +88,7 @@ export function QuarterHoursPractice({ mode, onLesson, onHome }: { mode: Quarter
       </div>}
       <p className="exercise-feedback" role="status" aria-live="polite">{feedback === 'idle' ? '' : feedback === 'correct' ? reward.message : 'כמעט! נסו שוב'}</p>
       {feedback !== 'correct' ? <button className="start-button" type="button" disabled={target.kind === 'reading' && selected === null}
-        onClick={() => { const correct = (target.kind === 'setting' ? formatTime(time) : selected) === answer; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
+        onClick={() => { const correct = (target.kind === 'setting' ? formatTime(time) : selected) === answer; if (!help.attempt(correct)) return; if (correct) reward.award(); setFeedback(correct ? 'correct' : 'incorrect'); }}>בדיקה</button>
         : <button ref={nextButton} className="start-button" type="button" onClick={() => {
           if (index === quarterExercises[mode].length - 1) setCompleted(true);
           else { setIndex(index + 1); setTime(initialTime(quarterExercises[mode][index + 1])); setSelected(null); setFeedback('idle'); }
