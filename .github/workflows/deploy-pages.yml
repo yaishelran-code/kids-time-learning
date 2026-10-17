@@ -37,7 +37,8 @@ jobs:
         run: npm ci
 
       - name: Run automated tests
-        run: npm test
+        # Keep exhaustive UI sequences from competing for the runner's CPUs.
+        run: npm test -- --maxWorkers=1
 
       - name: Check TypeScript
         run: npm run typecheck
