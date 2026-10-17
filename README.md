@@ -623,3 +623,14 @@ as well as Home, cancel and new form. Cancelling preserves the draft and stored
 bytes; accepting discard executes only the requested action. Back/Escape cancel
 the pending discard. Deployment still requires owner approval.
 Physical devices, non-Chromium engines and screen readers remain unverified.
+
+## Release pipeline
+
+Pull requests run the standard automated tests, TypeScript and production build.
+On main, deployment runs only after these checks. A subsequent Chromium smoke job
+verifies that the public HTML references the exact JavaScript asset built by that
+run, then checks desktop/phone hand exploration, help/PIN, practice resume,
+rewards, parent reset cancellation and unsaved activity-switch protection.
+Screenshots are retained as Actions artifacts. These isolated browser contexts do
+not change another user's local browser data. Physical-device testing remains a
+separate acceptance check.
