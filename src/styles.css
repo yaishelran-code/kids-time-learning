@@ -174,3 +174,13 @@ h1 { margin: 4px 0 12px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; }
 .parent-topics li { margin-block: 1rem; }
 .parent-confirmation { margin-block: 1rem; }
 .parent-confirmation button { margin: .5rem; }
+
+[hidden] { display: none !important; }
+.play-time { font-size: 2.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.clock-play { border-block: 2px solid #dbe4f1; padding-block: 16px; margin-block: 16px; }
+.help-dialog { width: min(95vw, 640px); max-height: 90dvh; overflow: auto; border: 2px solid #7357c8; border-radius: 24px; padding: 24px; color: #243450; text-align: center; }
+.help-dialog::backdrop { background: #243450aa; }
+.help-dialog .home { padding: 12px 0; }
+.practice-tools { margin-block: 12px; }
+.topic-grid { display: grid; gap: 16px; }
+.flow-lesson > nav { position: sticky; top: 0; background: #f4f7fc; z-index: 2; padding-block: 12px; }

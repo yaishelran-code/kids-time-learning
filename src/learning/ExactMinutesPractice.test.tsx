@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { readLedger } from '../rewards/ledger';
 import { act, useState } from 'react';
@@ -13,15 +14,15 @@ let container: HTMLDivElement;
 let root: Root;
 beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
-function button(label: string) { const b = [...container.querySelectorAll('button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
-function click(label: string) { act(() => button(label).click()); }
-function key(key: string) { act(() => container.querySelector('[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))); }
+function button(label: string) { const b = [...allVisible(container, 'button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
+function key(key: string) { act(() => queryVisible(container, '[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))); }
 function hands(hour: number, minute: number) {
-  expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
-  expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
+  expect(queryVisible(container, '[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
+  expect(queryVisible(container, '[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
 }
-const status = () => container.querySelector('[role="status"]')?.textContent;
-function open(mode: ExactMinutesPracticeMode) { click('לימוד דקות מדויקות'); click('הדוגמה הבאה'); click(exactMinutesPracticeTitles[mode]); }
+const status = () => queryVisible(container, '[role="status"]')?.textContent;
+function open(mode: ExactMinutesPracticeMode) { click('צעדים של דקה אחת'); click('הדוגמה הבאה'); click(exactMinutesPracticeTitles[mode]); }
 
 describe('exact-minute practice', () => {
   it('meets the required fixed sequences, valid times and mixed exact-minute balance', () => {
@@ -58,18 +59,18 @@ describe('exact-minute practice', () => {
     const distances: number[] = [];
     let firstStart = 0;
     for (const [index,target] of exactMinutesExercises[mode].entries()) {
-      expect(container.textContent).toContain(`תרגיל ${index+1} מתוך ${exactMinutesExercises[mode].length}`);
-      expect(document.activeElement).toBe(container.querySelector('h1'));
-      expect(container.querySelector('.digital-time')).toBeNull();
-      expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
+      expect(visibleText(container)).toContain(`תרגיל ${index+1} מתוך ${exactMinutesExercises[mode].length}`);
+      expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+      expect(queryVisible(container, '.digital-time')).toBeNull();
+      expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
       expect(status()).toBe('');
       if(target.kind === 'setting') {
-        expect(container.querySelector('.exercise-target bdi')?.textContent).toBe(formatTime(target));
-        expect(container.querySelector('.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
-        if (target.minute === 1) expect(container.querySelector('.exercise-target')?.textContent).toContain('ודקה אחת');
-        expect(container.querySelector('.exercise-target')?.textContent).not.toContain('undefined');
-        expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuetext')).not.toBe(`השעה ${formatTime(target)}`);
-        const start = Number(container.querySelector('[role="slider"]')!.getAttribute('aria-valuenow'));
+        expect(queryVisible(container, '.exercise-target bdi')?.textContent).toBe(formatTime(target));
+        expect(queryVisible(container, '.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
+        if (target.minute === 1) expect(queryVisible(container, '.exercise-target')?.textContent).toContain('ודקה אחת');
+        expect(queryVisible(container, '.exercise-target')?.textContent).not.toContain('undefined');
+        expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-valuetext')).not.toBe(`השעה ${formatTime(target)}`);
+        const start = Number(queryVisible(container, '[role="slider"]')!.getAttribute('aria-valuenow'));
         if (index === 0) firstStart = start;
         starts.push(start);
         distances.push(((target.hour % 12 * 60 + target.minute - start + 1080) % 720) - 360);
@@ -79,9 +80,9 @@ describe('exact-minute practice', () => {
         for (let n = 0; n < Math.abs(delta); n++) key(delta > 0 ? 'ArrowRight' : 'ArrowLeft');
         hands(target.hour,target.minute); expect(status()).toBe('');
       } else {
-        hands(target.hour,target.minute); expect(container.querySelector('[role="slider"]')).toBeNull();
+        hands(target.hour,target.minute); expect(queryVisible(container, '[role="slider"]')).toBeNull();
         expect(button('בדיקה').disabled).toBe(true);
-        const choices = [...container.querySelectorAll('.reading-answers button')];
+        const choices = [...allVisible(container, '.reading-answers button')];
         const labels = choices.map(el => el.textContent!);
         expect(new Set(labels).size).toBe(3);
         expect(labels.filter(label => label === formatTime(target))).toHaveLength(1);
@@ -102,15 +103,15 @@ describe('exact-minute practice', () => {
         expect(wrongTimes.some(label => label.split(':')[1] === String(target.minute).padStart(2, '0'))).toBe(true);
         click(formatTime(target));expect(status()).toBe('');
       }
-      expect(container.textContent).not.toContain('התרגיל הבא');
+      expect(visibleText(container)).not.toContain('התרגיל הבא');
       click('בדיקה');expect(status()).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       expect(document.activeElement).toBe(button('התרגיל הבא'));
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      const svg = container.querySelector('svg')!;
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      const svg = queryVisible(container, 'svg')!;
       act(() => svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })));
       hands(target.hour, target.minute);
-      expect([...container.querySelectorAll('.reading-answers button')].every(el => (el as HTMLButtonElement).disabled)).toBe(true);
-      expect(container.textContent).not.toContain('רבע לשמונה');
+      expect([...allVisible(container, '.reading-answers button')].every(el => (el as HTMLButtonElement).disabled)).toBe(true);
+      expect(visibleText(container)).not.toContain('רבע לשמונה');
       click('התרגיל הבא');
     }
     if(mode !== 'setting') {
@@ -122,20 +123,20 @@ describe('exact-minute practice', () => {
       expect(distances.some(n => n > 0)).toBe(true);
       expect(distances.some(n => n < 0)).toBe(true);
     }
-    expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(queryVisible(container, 'h1')?.textContent).toContain('סיימתם');
     expect(readLedger().ledger.stars).toBe(exactMinutesExercises[mode].length);
     expect(readLedger().ledger.runs[`exact-${mode}`]!.awarded).toHaveLength(exactMinutesExercises[mode].length);
-    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * exactMinutesExercises[mode].length} נקודות ו־${exactMinutesExercises[mode].length} כוכבים.`);
-    expect(container.querySelector('h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'המשולב');
-    expect(container.textContent).not.toContain('תרגיל 1 מתוך');
-    click('תרגלו שוב');expect(status()).toBe('');expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    expect(container.textContent).toContain(`תרגיל 1 מתוך ${exactMinutesExercises[mode].length}`);
-    if (mode !== 'reading') expect(Number(container.querySelector('[role="slider"]')!.getAttribute('aria-valuenow'))).toBe(firstStart);
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * exactMinutesExercises[mode].length} נקודות ו־${exactMinutesExercises[mode].length} כוכבים.`);
+    expect(queryVisible(container, 'h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'המשולב');
+    expect(visibleText(container)).not.toContain('תרגיל 1 מתוך');
+    click('תרגלו שוב');expect(status()).toBe('');expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
+    expect(visibleText(container)).toContain(`תרגיל 1 מתוך ${exactMinutesExercises[mode].length}`);
+    if (mode !== 'reading') expect(Number(queryVisible(container, '[role="slider"]')!.getAttribute('aria-valuenow'))).toBe(firstStart);
     if (mode === 'reading') expect(button('בדיקה').disabled).toBe(true);
     click('חזרה ללימוד');hands(8,1);
     expect(document.activeElement).toBe(button(exactMinutesPracticeTitles[mode]));
     click(exactMinutesPracticeTitles[mode]);expect(status()).toBe('');click('חזרה לבית');
-    expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
+    expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
   });
   it('selects every minute, wraps in both directions and preserves earlier snapping', () => {
     open('setting');
@@ -144,7 +145,7 @@ describe('exact-minute practice', () => {
     hands(12, 0); key('ArrowLeft'); hands(11, 59);
     key('ArrowUp'); hands(12, 0); key('ArrowDown'); hands(11, 59);
     key('End'); hands(11, 59); key('Home'); hands(12, 0);
-    expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuemax')).toBe('719');
+    expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-valuemax')).toBe('719');
     expect(timeFromMinutes(8)).toEqual({ hour: 12, minute: 0 });
     expect(timeFromMinutes(8, 15)).toEqual({ hour: 12, minute: 15 });
     expect(timeFromMinutes(8, 5)).toEqual({ hour: 12, minute: 10 });
@@ -158,7 +159,7 @@ describe('exact-minute practice', () => {
   it.each(['mouse', 'touch'])('snaps %s drags to one minute, crosses twelve both ways, and cancels capture', pointerType => {
     function Clock() { const [time, setTime] = useState<ClockTime>({ hour: 12, minute: 59 }); return <AnalogClock {...time} minuteStep={1} onTimeChange={setTime} />; }
     act(() => root.render(<Clock />));
-    const svg = container.querySelector('svg')!;
+    const svg = queryVisible(container, 'svg')!;
     vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 300, height: 300 } as DOMRect);
     Object.assign(svg, { setPointerCapture: vi.fn(), hasPointerCapture: () => true, releasePointerCapture: vi.fn() });
     const dispatch = (el: Element, type: string, angle: number, extra = {}) => {
@@ -167,7 +168,7 @@ describe('exact-minute practice', () => {
         clientX: 150 + 90 * Math.sin(angle * Math.PI / 180), clientY: 150 - 90 * Math.cos(angle * Math.PI / 180), ...extra });
       act(() => el.dispatchEvent(event));
     };
-    const slider = container.querySelector('[role="slider"]')!;
+    const slider = queryVisible(container, '[role="slider"]')!;
     dispatch(slider, 'pointerdown', 354, { isPrimary: false });
     dispatch(svg, 'pointermove', 0); hands(12, 59);
     dispatch(slider, 'pointerdown', 354);
@@ -193,7 +194,7 @@ describe('exact-minute practice', () => {
     dispatch(svg, 'lostpointercapture', 354);
     dispatch(svg, 'pointermove', 0); hands(12, 59);
   });
-  it.each(['setting', 'reading', 'mixed'] as const)('returns home during %s and starts a fresh practice on reentry', mode => {
+  it.each(['setting', 'reading', 'mixed'] as const)('returns home during %s and starts a fresh practice on explicit restart', mode => {
     open(mode);
     if (mode === 'reading') { click('8:11'); click('בדיקה'); }
     else { key('ArrowLeft'); click('בדיקה'); }
@@ -201,10 +202,10 @@ describe('exact-minute practice', () => {
     click('חזרה ללימוד'); hands(8, 1);
     expect(document.activeElement).toBe(button(exactMinutesPracticeTitles[mode]));
     click(exactMinutesPracticeTitles[mode]); expect(status()).toBe('');
-    expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
-    click('לימוד דקות מדויקות'); click(exactMinutesPracticeTitles[mode]);
-    expect(container.textContent).toContain(`תרגיל 1 מתוך ${exactMinutesExercises[mode].length}`);
+    expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
+    click('צעדים של דקה אחת'); click(exactMinutesPracticeTitles[mode]);
+    expect(visibleText(container)).toContain(`תרגיל 1 מתוך ${exactMinutesExercises[mode].length}`);
     expect(status()).toBe('');
   });
 });

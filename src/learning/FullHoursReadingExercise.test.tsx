@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -16,18 +17,18 @@ beforeEach(() => { localStorage.clear();
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
 function button(name: string) {
-  return [...container.querySelectorAll('button')].find(button => button.textContent === name);
+  return [...allVisible(container, 'button')].find(button => button.textContent === name);
 }
 function click(name: string) {
   expect(button(name)).toBeDefined();
   act(() => button(name)!.click());
 }
 function openExercise() { click('התחל ללמוד'); click('נתרגל קריאת שעון'); }
-function answers() { return [...container.querySelectorAll<HTMLButtonElement>('.reading-answers button')]; }
+function answers() { return [...allVisible<HTMLButtonElement>(container, '.reading-answers button')]; }
 function checkQuestion(hour: number) {
-  expect(container.querySelector('h1')?.textContent).toBe('מה השעה?');
-  expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
-  const clock = container.querySelector('svg')!;
+  expect(queryVisible(container, 'h1')?.textContent).toBe('מה השעה?');
+  expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
+  const clock = queryVisible(container, 'svg')!;
   expect(clock.getAttribute('role')).toBe('img');
   expect(clock.getAttribute('aria-labelledby')).toBe(clock.querySelector('title')?.id);
   expect(clock.querySelector('title')?.textContent).toBe(`שעון אנלוגי המציג את השעה ${hourNames[hour % 12]}`);
@@ -36,11 +37,11 @@ function checkQuestion(hour: number) {
   expect(minute.getAttribute('x1')).toBe(minute.getAttribute('x2'));
   expect(minute.getAttribute('y2')).toBe('60');
   expect(minute.hasAttribute('transform')).toBe(false);
-  expect(container.querySelector('[role="slider"]')).toBeNull();
+  expect(queryVisible(container, '[role="slider"]')).toBeNull();
   expect(clock.classList.contains('interactive-clock')).toBe(false);
-  expect(container.querySelector('.digital-time')).toBeNull();
-  expect(container.querySelector('.clock-card')?.textContent).not.toMatch(/\d+:\d+/);
-  expect(container.querySelector('header')?.textContent).not.toMatch(/\d+:\d+/);
+  expect(queryVisible(container, '.digital-time')).toBeNull();
+  expect(queryVisible(container, '.clock-card')?.textContent).not.toMatch(/\d+:\d+/);
+  expect(queryVisible(container, 'header')?.textContent).not.toMatch(/\d+:\d+/);
   const options = answers();
   expect(options).toHaveLength(3);
   expect(new Set(options.map(option => option.textContent)).size).toBe(3);
@@ -49,19 +50,19 @@ function checkQuestion(hour: number) {
     expect(option.textContent).toMatch(/^(?:[1-9]|1[0-2]):00$/);
     expect(option.querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
   }
-  expect(container.textContent).not.toMatch(/בבוקר|בערב|בצהריים/);
+  expect(visibleText(container)).not.toMatch(/בבוקר|בערב|בצהריים/);
 }
 
 describe('full-hour reading exercise', () => {
   it('retries the same question without revealing the answer, then advances after success', () => {
     openExercise();
     checkQuestion(1);
-    expect(document.activeElement).toBe(container.querySelector('h1'));
+    expect(document.activeElement).toBe(queryVisible(container, 'h1'));
     expect(button('התרגיל הבא')).toBeUndefined();
     const initialOptions = answers().map(option => option.textContent);
     click('3:00');
     checkQuestion(1);
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('כמעט! נסו שוב');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('כמעט! נסו שוב');
     expect(answers().map(option => option.textContent)).toEqual(initialOptions);
     expect(answers().filter(option => option.getAttribute('aria-pressed') === 'true').map(option => option.textContent)).toEqual(['3:00']);
     expect(answers().every(option => !option.disabled)).toBe(true);
@@ -69,19 +70,19 @@ describe('full-hour reading exercise', () => {
     click('11:00');
     expect(answers().filter(option => option.getAttribute('aria-pressed') === 'true').map(option => option.textContent)).toEqual(['11:00']);
     click('1:00');
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
     expect(answers().filter(option => option.getAttribute('aria-pressed') === 'true').map(option => option.textContent)).toEqual(['1:00']);
     expect(document.activeElement).toBe(button('התרגיל הבא'));
     click('התרגיל הבא');
     checkQuestion(3);
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
     expect(answers().every(option => option.getAttribute('aria-pressed') === 'false' && !option.disabled)).toBe(true);
-    expect(document.activeElement).toBe(container.querySelector('h1'));
+    expect(document.activeElement).toBe(queryVisible(container, 'h1'));
   });
 
   it.each(['mouse', 'touch'])('ignores %s dragging on either hand and keyboard movement', pointerType => {
     openExercise();
-    const svg = container.querySelector('svg')!;
+    const svg = queryVisible(container, 'svg')!;
     for (const hand of svg.querySelectorAll('[data-hand]')) {
       for (const [target, type] of [[hand, 'pointerdown'], [svg, 'pointermove'], [svg, 'pointerup']] as const) {
         const event = new Event(type, { bubbles: true });
@@ -91,7 +92,7 @@ describe('full-hour reading exercise', () => {
       act(() => hand.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })));
     }
     checkQuestion(1);
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
   });
 
   it('covers the deterministic sequence, gates completion, and resets on restart', () => {
@@ -106,36 +107,37 @@ describe('full-hour reading exercise', () => {
       expect(button('התרגיל הבא')).toBeUndefined();
       checkQuestion(hour);
       click(`${hour}:00`);
-      expect(container.querySelector('[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
+      expect(queryVisible(container, '[role="status"]')?.textContent).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       click('התרגיל הבא');
     }
-    expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול קריאת השעון 🎉');
-    expect(document.activeElement).toBe(container.querySelector('h1'));
-    expect(container.querySelector('svg')).toBeNull();
-    expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד']);
+    expect(queryVisible(container, 'h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול קריאת השעון 🎉');
+    expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+    expect(queryVisible(container, 'svg')).toBeNull();
+    expect([...allVisible(container, 'button')].map(button => button.textContent)).toEqual(['לנושא הבא', 'תרגלו שוב', 'חזרה ללימוד', 'חזרה לבית']);
     click('תרגלו שוב');
     checkQuestion(1);
     expect(answers().map(option => option.textContent)).toEqual(initialOptions);
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
     expect(answers().every(option => option.getAttribute('aria-pressed') === 'false')).toBe(true);
     expect(button('התרגיל הבא')).toBeUndefined();
   });
 
-  it('returns to the preserved lesson example and Home, and reentry starts fresh', () => {
+  it('returns to the preserved lesson example and Home, and explicit restart starts fresh', () => {
     click('התחל ללמוד');
     click('הדוגמה הבאה');
     click('נתרגל קריאת שעון');
     click('1:00');
     click('חזרה ללימוד');
-    expect(container.querySelector('h1')?.textContent).toBe('שעות שלמות');
-    expect(container.querySelector('.day-period')?.textContent).toContain('בערב');
-    expect(document.activeElement).toBe(container.querySelector('h1'));
+    expect(queryVisible(container, 'h1')?.textContent).toBe('שעות שלמות');
+    expect(queryVisible(container, '.day-period')?.textContent).toContain('בערב');
+    expect(document.activeElement).toBe(button('נתרגל קריאת שעון'));
     click('נתרגל קריאת שעון');
+    click('התחלה מחדש — רצף תגמולים חדש');
     checkQuestion(1);
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
     click('חזרה לבית');
-    expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
-    expect(container.querySelector('.digital-time')?.textContent).toBe('7:00');
+    expect(queryVisible(container, 'h1')?.textContent).toBe('לומדים את השעה');
+    expect(queryVisible(container, '.digital-time')?.textContent).toBe('7:00');
     expect(document.activeElement).toBe(button('התחל ללמוד'));
   });
 
@@ -143,7 +145,7 @@ describe('full-hour reading exercise', () => {
     openExercise();
     for (const hour of [1, 3, 6, 8, 10, 12]) { click(`${hour}:00`); click('התרגיל הבא'); }
     click('חזרה ללימוד');
-    expect(container.querySelector('h1')?.textContent).toBe('שעות שלמות');
-    expect(document.activeElement).toBe(container.querySelector('h1'));
+    expect(queryVisible(container, 'h1')?.textContent).toBe('שעות שלמות');
+    expect(document.activeElement).toBe(button('נתרגל קריאת שעון'));
   });
 });

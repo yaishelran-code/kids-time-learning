@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -10,7 +11,7 @@ let container: HTMLDivElement, root: Root;
 Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});
 beforeEach(()=>{localStorage.clear();container=document.createElement('div');document.body.append(container);root=createRoot(container);act(()=>root.render(<App/>));});
 afterEach(()=>{act(()=>root.unmount());container.remove();vi.restoreAllMocks();});
-function click(label:string){const button=[...container.querySelectorAll('button')].find(e=>e.textContent===label)!;expect(button).toBeDefined();act(()=>button.click());}
+function click(label:string){const button=[...allVisible(container, 'button')].find(e=>e.textContent===label && !e.closest('[hidden]'))!;expect(button).toBeDefined();act(()=>button.click());}
 function open(){click('מאיפה מתחילים?');click('בואו נתחיל');}
 function finish(answers:(string|null)[]=correct){for(let i=0;i<12;i++){click(answers[i]??'עדיין לא יודע/ת');click(i===11?'לנקודת ההתחלה שלי':'השאלה הבאה');}}
 function rerender(){act(()=>root.unmount());root=createRoot(container);act(()=>root.render(<App/>));}
@@ -46,51 +47,51 @@ describe('baseline assessment flow',()=>{
   it('locks each response, gives neutral feedback, hides answers in clock titles and saves only on completion',()=>{
     localStorage.setItem(activityStorageKey,'untouched');open();
     questions.forEach((q,i)=>{
-      expect(container.textContent).toContain(`שאלה ${i+1} מתוך 12`);
-      expect(container.querySelector('svg title')?.textContent).toBe(q.kind==='digital'?undefined:'השעון בשאלה');
+      expect(visibleText(container)).toContain(`שאלה ${i+1} מתוך 12`);
+      expect(queryVisible(container, 'svg title')?.textContent).toBe(q.kind==='digital'?undefined:'השעון בשאלה');
       if(q.kind!=='digital'){
-        expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${q.time.hour%12*30+q.time.minute*.5} 150 150)`);
-        expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(q.time.minute===0?null:`rotate(${q.time.minute*6} 150 150)`);
+        expect(queryVisible(container, 'svg:not(.interactive-clock) [data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${q.time.hour%12*30+q.time.minute*.5} 150 150)`);
+        expect(queryVisible(container, 'svg:not(.interactive-clock) [data-hand="minute"]')?.getAttribute('transform')).toBe(q.time.minute===0?null:`rotate(${q.time.minute*6} 150 150)`);
       }
-      click(i===0?'המחוג הירוק':correct[i]);expect(container.querySelector('[role="status"]')?.textContent).toBe('תודה, ממשיכים');
-      expect([...container.querySelectorAll('.baseline-answers button')].every(b=>(b as HTMLButtonElement).disabled)).toBe(true);
-      expect(container.querySelector('[aria-pressed]')).toBeNull();expect(localStorage.getItem(baselineStorageKey)).toBeNull();
+      click(i===0?'המחוג הירוק':correct[i]);expect(queryVisible(container, '[role="status"]')?.textContent).toBe('תודה, ממשיכים');
+      expect([...allVisible(container, '.baseline-answers button')].every(b=>(b as HTMLButtonElement).disabled)).toBe(true);
+      expect(queryVisible(container, '[aria-pressed]')).toBeNull();expect(localStorage.getItem(baselineStorageKey)).toBeNull();
       expect(document.activeElement?.textContent).toBe(i===11?'לנקודת ההתחלה שלי':'השאלה הבאה');click(i===11?'לנקודת ההתחלה שלי':'השאלה הבאה');
     });
-    expect(container.textContent).toContain('כדאי להתחיל במבנה השעון');expect(container.textContent).not.toContain('ציון');
+    expect(visibleText(container)).toContain('כדאי להתחיל במבנה השעון');expect(visibleText(container)).not.toContain('ציון');
     expect(loadAssessment().assessment?.results.hourHand).toBe(false);expect(localStorage.getItem(activityStorageKey)).toBe('untouched');
-    click('לשיעור המומלץ');expect(container.querySelector('h1')?.textContent).toBe('מבנה השעון');click('חזרה לבית');expect(document.activeElement?.textContent).toBe('מאיפה מתחילים?');
+    click('לשיעור המומלץ');expect(queryVisible(container, '[data-flow-visible="true"] h1')?.textContent).toBe('מבנה השעון');click('נלמד קודם');expect(queryVisible(container, '[data-flow-visible="true"] .clock-play')).not.toBeNull();
   });
   it.each(['structure','fullHours','halfHours','quarterHours','fiveMinutes'] as StartingPoint[])('opens the %s recommended lesson and lets Home offer another topic',point=>{
     const results=Object.fromEntries(skills.map(s=>[s,true])) as Results;
     if(point==='structure')results.digital=false;else if(point!=='fiveMinutes')results[point]=false;
     expect(recommend(results)).toBe(point);saveAssessment({version:1,results,recommendation:point});
-    click('מאיפה מתחילים?');expect(container.textContent).toContain(lessonNames[point]);click('לשיעור המומלץ');
-    expect(container.querySelector('h1')?.textContent).toBe({structure:'מבנה השעון',fullHours:'שעות שלמות',halfHours:'חצי שעה',quarterHours:'לימוד רבע שעה',fiveMinutes:'לימוד דקות'}[point]);
-    click('חזרה לבית');click('היום שלי');expect(container.textContent).toContain('עדיין אין פעילויות');
+    click('מאיפה מתחילים?');expect(visibleText(container)).toContain(lessonNames[point]);click('לשיעור המומלץ');
+    expect(queryVisible(container, '[data-flow-visible="true"] h1')?.textContent).toBe({structure:'מבנה השעון',fullHours:'שעות שלמות',halfHours:'חצי שעה',quarterHours:'רבע שעה',fiveMinutes:'קפיצות של 5 דקות'}[point]);
+    click('חזרה לבית');click('היום שלי');expect(visibleText(container)).toContain('עדיין אין פעילויות');
   });
   it('restores completion on remount, preserves the previous result on partial exit, replaces it after a new completion',()=>{
-    open();finish();const previous=localStorage.getItem(baselineStorageKey);rerender();click('מאיפה מתחילים?');expect(container.textContent).toContain('דקות בקפיצות של חמש');
+    open();finish();const previous=localStorage.getItem(baselineStorageKey);rerender();click('מאיפה מתחילים?');expect(visibleText(container)).toContain('קפיצות של 5 דקות');
     click('בדיקה חדשה');click('עדיין לא יודע/ת');click('השאלה הבאה');click('יציאה בלי לשמור בדיקה חלקית');expect(localStorage.getItem(baselineStorageKey)).toBe(previous);
-    click('מאיפה מתחילים?');expect(container.textContent).toContain('דקות בקפיצות של חמש');click('בדיקה חדשה');finish(Array(12).fill(null));expect(loadAssessment().assessment?.recommendation).toBe('structure');
+    click('מאיפה מתחילים?');expect(visibleText(container)).toContain('קפיצות של 5 דקות');click('בדיקה חדשה');finish(Array(12).fill(null));expect(loadAssessment().assessment?.recommendation).toBe('structure');
   });
   it('keeps the previous saved result on write failure and supports retry without losing the new recommendation',()=>{
     saveAssessment(completedAssessment(correct));const previous=localStorage.getItem(baselineStorageKey);click('מאיפה מתחילים?');click('בדיקה חדשה');
     const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(()=>{throw new Error('quota');});finish(Array(12).fill(null));
-    expect(container.textContent).toContain('כדאי להתחיל במבנה השעון');expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא הצלחנו לשמור');expect(localStorage.getItem(baselineStorageKey)).toBe(previous);
-    spy.mockRestore();click('נסו לשמור שוב');expect(container.querySelector('[role="alert"]')).toBeNull();expect(loadAssessment().assessment?.recommendation).toBe('structure');
+    expect(visibleText(container)).toContain('כדאי להתחיל במבנה השעון');expect(queryVisible(container, '[role="alert"]')?.textContent).toContain('לא הצלחנו לשמור');expect(localStorage.getItem(baselineStorageKey)).toBe(previous);
+    spy.mockRestore();click('נסו לשמור שוב');expect(queryVisible(container, '[role="alert"]')).toBeNull();expect(loadAssessment().assessment?.recommendation).toBe('structure');
   });
   it('shows a corrupt-read warning without changing stored data on partial exit',()=>{
-    localStorage.setItem(baselineStorageKey,'broken');click('מאיפה מתחילים?');expect(container.querySelector('[role="alert"]')).not.toBeNull();click('בואו נתחיל');click('יציאה בלי לשמור בדיקה חלקית');expect(localStorage.getItem(baselineStorageKey)).toBe('broken');
+    localStorage.setItem(baselineStorageKey,'broken');click('מאיפה מתחילים?');expect(queryVisible(container, '[role="alert"]')).not.toBeNull();click('בואו נתחיל');click('יציאה בלי לשמור בדיקה חלקית');expect(localStorage.getItem(baselineStorageKey)).toBe('broken');
   });
   it('teaches both hands, 12 clock numbers, 12 hours and a complete 60-minute rotation',()=>{
-    click('מבנה השעון');expect(container.textContent).toContain('12 שעות');expect(container.textContent).toContain('60 דקות');expect(container.textContent).toContain('המחוג הקצר');expect(container.textContent).toContain('המחוג הארוך');
+    click('מבנה השעון');expect(visibleText(container)).toContain('12 שעות');expect(visibleText(container)).toContain('60 דקות');expect(visibleText(container)).toContain('המחוג הקצר');expect(visibleText(container)).toContain('המחוג הארוך');
     for(let i=0;i<=4;i++){
-      expect(container.querySelector('.digital-time')?.textContent).toBe(['7:00','7:15','7:30','7:45','8:00'][i]);expect(container.querySelector('[role="status"]')?.textContent).toContain(`עברו ${i*15} דקות`);
-      expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${210+i*7.5} 150 150)`);
-      expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(i===0||i===4?null:`rotate(${i*90} 150 150)`);
+      expect(queryVisible(container, '.digital-time')?.textContent).toBe(['7:00','7:15','7:30','7:45','8:00'][i]);expect(queryVisible(container, '[role="status"]')?.textContent).toContain(`עברו ${i*15} דקות`);
+      expect(queryVisible(container, 'svg:not(.interactive-clock) [data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${210+i*7.5} 150 150)`);
+      expect(queryVisible(container, 'svg:not(.interactive-clock) [data-hand="minute"]')?.getAttribute('transform')).toBe(i===0||i===4?null:`rotate(${i*90} 150 150)`);
       if(i<4)click('עוד 15 דקות');
     }
-    click('נראה שוב את הסיבוב');expect(container.querySelector('.digital-time')?.textContent).toBe('7:00');click('נמשיך לשעות שלמות');expect(container.querySelector('h1')?.textContent).toBe('שעות שלמות');
+    click('נראה שוב את הסיבוב');expect(queryVisible(container, '.digital-time')?.textContent).toBe('7:00');click('נמשיך לשעות שלמות');expect(queryVisible(container, 'h1')?.textContent).toBe('שעות שלמות');
   });
 });

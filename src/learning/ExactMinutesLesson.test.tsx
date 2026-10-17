@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -12,8 +13,8 @@ beforeEach(() => {
   root = createRoot(container); act(() => root.render(<App />));
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { return [...container.querySelectorAll('button')].find(value => value.textContent === label)!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { return [...allVisible(container, 'button')].find(value => value.textContent === label)!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 const times = [[8, 0], [8, 1], [8, 4], [8, 5], [8, 6], [8, 7], [8, 9], [8, 10], [8, 23], [8, 37], [8, 58], [8, 59], [9, 0], [12, 1], [12, 59]];
 const labels = ['השעה שמונה', 'השעה שמונה ודקה אחת', 'השעה שמונה וארבע דקות', 'השעה שמונה וחמש דקות', 'השעה שמונה ושש דקות', 'השעה שמונה ושבע דקות', 'השעה שמונה ותשע דקות', 'השעה שמונה ועשר דקות', 'השעה שמונה ועשרים ושלוש דקות', 'השעה שמונה ושלושים ושבע דקות', 'השעה שמונה וחמישים ושמונה דקות', 'השעה שמונה וחמישים ותשע דקות', 'השעה תשע', 'השעה שתים עשרה ודקה אחת', 'השעה שתים עשרה וחמישים ותשע דקות'];
 const explanationParts = [
@@ -37,12 +38,12 @@ function hands(element: Element, hour: number, minute: number) {
 }
 describe('exact-minute lesson', () => {
   it('teaches all 15 fixed examples with synchronized hands, marker, wording, explanations and accessible navigation', () => {
-    click('לימוד דקות מדויקות');
+    click('צעדים של דקה אחת');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
     for (let index = 0; index < times.length; index++) {
       const [hour, minute] = times[index];
-      const card = container.querySelector('.clock-card')!;
+      const card = queryVisible(container, '.clock-card')!;
       hands(card, hour, minute);
       expect(card.querySelector('h2')?.textContent).toBe(`דוגמה ${index + 1} מתוך 15: ${labels[index]}`);
       expect(document.activeElement).toBe(card.querySelector('h2'));
@@ -52,28 +53,28 @@ describe('exact-minute lesson', () => {
       expect(card.querySelector('title')?.textContent).toBe(`שעון אנלוגי: ${labels[index]}`);
       expect(card.querySelector('.clock-caption')?.textContent).toBe(labels[index]);
       expect(card.querySelector('svg')?.getAttribute('role')).toBe('img');
-      expect(container.querySelector('[role="slider"]')).toBeNull();
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
       for (const text of explanationParts[index]) expect(card.querySelector('.exact-minute-explanation')?.textContent).toContain(text);
       if (index < times.length - 1) click('הדוגמה הבאה');
     }
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    click('הדוגמה הבאה'); hands(container.querySelector('.clock-card')!, 12, 59);
+    click('הדוגמה הבאה'); hands(queryVisible(container, '.clock-card')!, 12, 59);
     for (let index = times.length - 2; index >= 0; index--) {
-      click('הדוגמה הקודמת'); hands(container.querySelector('.clock-card')!, ...times[index] as [number, number]);
+      click('הדוגמה הקודמת'); hands(queryVisible(container, '.clock-card')!, ...times[index] as [number, number]);
     }
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
-    expect(container.textContent).toContain('בין שני סימונים קטנים עוברת דקה אחת');
-    expect(container.textContent).toContain('חמישה צעדים של דקה');
-    for (const caption of container.querySelectorAll('.clock-caption, figcaption')) expect(caption.textContent).not.toMatch(/לתשע|לאחת/);
-    expect(container.querySelectorAll('.exercise-navigation button')).toHaveLength(3);
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
-    expect(container.querySelector('[data-minute-marker]')).toBeNull();
-    click('לימוד דקות מדויקות'); hands(container.querySelector('.clock-card')!, 8, 0);
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
+    expect(visibleText(container)).toContain('בין שני סימונים קטנים עוברת דקה אחת');
+    expect(visibleText(container)).toContain('חמישה צעדים של דקה');
+    for (const caption of allVisible(container, '.clock-caption, figcaption')) expect(caption.textContent).not.toMatch(/לתשע|לאחת/);
+    expect(allVisible(container, '.exercise-navigation button')).toHaveLength(3);
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
+    expect(queryVisible(container, '[data-minute-marker]')).toBeNull();
+    click('צעדים של דקה אחת'); hands(queryVisible(container, '.clock-card')!, 8, 0);
   });
   it('compares single ticks and the hour rollover with precise hand positions', () => {
-    click('לימוד דקות מדויקות');
-    const groups = [...container.querySelectorAll('.minutes-comparison-grid')];
+    click('צעדים של דקה אחת');
+    const groups = [...allVisible(container, '.minutes-comparison-grid')];
     expect(groups).toHaveLength(2);
     for (const [groupIndex, group] of groups.entries()) {
       const expected = groupIndex === 0 ? [[8, 5], [8, 6], [8, 7]] : [[8, 58], [8, 59], [9, 0]];

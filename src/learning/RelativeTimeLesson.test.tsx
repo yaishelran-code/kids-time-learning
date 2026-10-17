@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -13,8 +14,8 @@ beforeEach(() => {
   root = createRoot(container); act(() => root.render(<App />));
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { return [...container.querySelectorAll('button')].find(value => value.textContent === label)!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { return [...allVisible(container, 'button')].find(value => value.textContent === label)!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 // Independent acceptance fixtures: start/end, total, kind, whole hours and five-minute steps.
 const fixtures = [
   [3, 0, 5, 0, 120, 'elapsed', 2, 0], [9, 0, 12, 0, 180, 'elapsed', 3, 0],
@@ -49,14 +50,14 @@ describe('relative-time lesson', () => {
     expect(relativeTimeExamples).toHaveLength(12);
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
-    expect(container.textContent).toContain('השעה אומרת מתי. משך הזמן אומר כמה זמן');
-    expect(container.textContent).toContain('60 דקות הן שעה');
-    expect(container.textContent).toContain('90 דקות הן שעה ו־30 דקות');
-    expect(container.textContent).toContain('שעה וחצי');
+    expect(visibleText(container)).toContain('השעה אומרת מתי. משך הזמן אומר כמה זמן');
+    expect(visibleText(container)).toContain('60 דקות הן שעה');
+    expect(visibleText(container)).toContain('90 דקות הן שעה ו־30 דקות');
+    expect(visibleText(container)).toContain('שעה וחצי');
     for (let index = 0; index < 12; index++) {
       const [sh, sm, eh, em, , kind, hours, fives] = fixtures[index];
       const example = relativeTimeExamples[index];
-      const card = container.querySelector('.relative-time-card')!;
+      const card = queryVisible(container, '.relative-time-card')!;
       expect(card.querySelector('h2')?.textContent).toBe(`דוגמה ${index + 1} מתוך 12: ${example.stage}`);
       expect(document.activeElement).toBe(card.querySelector('h2'));
       expect(card.querySelector('.relative-question')?.textContent).toBe(kind === 'elapsed' ? 'כמה זמן עבר?' : 'כמה זמן נשאר?');
@@ -90,19 +91,19 @@ describe('relative-time lesson', () => {
       if ([1, 3, 7, 9].includes(index)) expect(card.textContent).toContain('סדר האירועים וחלק היום');
       if (index === 10) expect(card.querySelector('.relative-summary')?.textContent).toBe('מ־3:15 עד 4:15: שעה. ועוד 30 דקות עד 4:45.');
       if (index === 11) expect(card.querySelector('.relative-summary')?.textContent).toBe('מ־4:20 עד 5:20: שעה. ועוד 40 דקות עד 6:00.');
-      expect(container.querySelector('[role="slider"]')).toBeNull();
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
       if (index < 11) click('הדוגמה הבאה');
     }
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    click('הדוגמה הבאה'); expect(container.querySelector('h2')?.textContent).toContain('12 מתוך 12');
+    click('הדוגמה הבאה'); expect(queryVisible(container, 'h2')?.textContent).toContain('12 מתוך 12');
     for (let index = 10; index >= 0; index--) {
-      click('הדוגמה הקודמת'); expect(container.querySelector('h2')?.textContent).toContain(`דוגמה ${index + 1} מתוך 12`);
+      click('הדוגמה הקודמת'); expect(queryVisible(container, 'h2')?.textContent).toContain(`דוגמה ${index + 1} מתוך 12`);
     }
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
     click('חזרה לבית'); expect(document.activeElement).toBe(button('כמה זמן עבר ונשאר?'));
-    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'לימוד דקות', 'לימוד דקות מדויקות']) expect(button(entry)).toBeDefined();
-    click('כמה זמן עבר ונשאר?'); expect(container.querySelector('h2')?.textContent).toContain('דוגמה 1 מתוך 12');
+    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'קפיצות של 5 דקות', 'צעדים של דקה אחת']) expect(button(entry)).toBeDefined();
+    click('כמה זמן עבר ונשאר?'); expect(queryVisible(container, 'h2')?.textContent).toContain('דוגמה 1 מתוך 12');
   });
   it('formats duration independently of clock time', () => {
     expect(durationLabel(60)).toBe('שעה'); expect(durationLabel(90)).toBe('שעה ו־30 דקות');

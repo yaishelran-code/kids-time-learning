@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -8,14 +9,14 @@ let container: HTMLDivElement, root: Root;
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
-function click(label: string) { const b = [...container.querySelectorAll('button')].find(x => x.textContent === label || x.getAttribute('aria-label') === label)!; expect(b).toBeDefined(); act(() => b.click()); }
+function click(label: string) { const b = [...allVisible(container, 'button')].find(x => x.textContent === label || x.getAttribute('aria-label') === label)!; expect(b).toBeDefined(); act(() => b.click()); }
 function field(label: string, value: string) {
-  const l = [...container.querySelectorAll('label')].find(x => x.firstChild?.textContent === label)!;
+  const l = [...allVisible(container, 'label')].find(x => x.firstChild?.textContent === label)!;
   const e = l.querySelector('input, select') as HTMLInputElement;
   act(() => { Object.getOwnPropertyDescriptor(e.tagName === 'INPUT' ? HTMLInputElement.prototype : HTMLSelectElement.prototype, 'value')!.set!.call(e, value); e.dispatchEvent(new Event(e.tagName === 'INPUT' ? 'input' : 'change', { bubbles: true })); });
 }
 function add(name: string, hour: number, minute: number, period: string) { click('הוספת פעילות'); field('שם הפעילות', name); field('שעה', String(hour)); field('דקות', String(minute)); field('חלק ביום', period); click('שמירת פעילות'); }
-function names() { return [...container.querySelectorAll('.activity-list h2')].map(x => x.textContent); }
+function names() { return [...allVisible(container, '.activity-list h2')].map(x => x.textContent); }
 
 describe('activity time and storage', () => {
   it('resolves noon, midnight and every period boundary without accepting incompatible choices', () => {
@@ -40,33 +41,47 @@ describe('activity time and storage', () => {
 });
 describe('My Day', () => {
   it('adds, edits, confirms/cancels deletion, persists and restores Home focus', () => {
-    click('היום שלי'); expect(container.textContent).toContain('עדיין אין פעילויות');
+    click('היום שלי'); expect(visibleText(container)).toContain('עדיין אין פעילויות');
     add('משחק',7,30,'evening'); add('חצות',12,0,'night'); add('ארוחה',12,0,'noon'); add('עוד ארוחה',12,0,'noon'); add('אחרי חצות',2,1,'night');
     expect(names()).toEqual(['חצות','אחרי חצות','ארוחה','עוד ארוחה','משחק']);
-    const clocks = [...container.querySelectorAll('.activity-list svg')];
+    const clocks = [...allVisible(container, '.activity-list svg')];
     expect(clocks[0].querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe('rotate(0 150 150)');
     expect(clocks[1].querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe('rotate(60.5 150 150)');
     expect(clocks[1].querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe('rotate(6 150 150)');
-    expect([...container.querySelectorAll('.activity-list bdi')].map(x=>x.textContent)).toEqual(['12:00','2:01','12:00','12:00','7:30']);
+    expect([...allVisible(container, '.activity-list bdi')].map(x=>x.textContent)).toEqual(['12:00','2:01','12:00','12:00','7:30']);
     click('עריכת משחק'); field('שם הפעילות','משחק חדש'); field('שעה','7'); field('דקות','5'); field('חלק ביום','morning'); click('שמירת פעילות');
     expect(names()).toEqual(['חצות','אחרי חצות','משחק חדש','ארוחה','עוד ארוחה']);
-    click('מחיקת ארוחה'); expect(container.querySelector('[role="alertdialog"]')).not.toBeNull(); click('ביטול מחיקה'); expect(names()).toContain('ארוחה');
+    click('מחיקת ארוחה'); expect(queryVisible(container, '[role="alertdialog"]')).not.toBeNull(); click('ביטול מחיקה'); expect(names()).toContain('ארוחה');
     click('מחיקת ארוחה'); click('כן, למחוק'); expect(names()).not.toContain('ארוחה');
     expect(JSON.parse(localStorage.getItem(activityStorageKey)!).length).toBe(4);
     click('חזרה לבית'); expect(document.activeElement?.textContent).toBe('היום שלי'); click('היום שלי'); expect(names()).toEqual(['חצות','אחרי חצות','משחק חדש','עוד ארוחה']);
-    expect(container.querySelector('main')?.dir).toBe('rtl');
+    expect(queryVisible(container, 'main')?.dir).toBe('rtl');
   });
   it('explains invalid names and period combinations, and supports cancelling edits', () => {
-    click('היום שלי'); click('הוספת פעילות'); field('שם הפעילות','  '); click('שמירת פעילות'); expect(container.querySelector('[role="alert"]')?.textContent).toContain('כתבו שם');
-    field('שם הפעילות','פעילות'); field('חלק ביום','noon'); click('שמירת פעילות'); expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא מתאימים'); expect(names()).toHaveLength(0);
-    field('חלק ביום','morning'); click('שמירת פעילות'); click('עריכת פעילות'); field('שם הפעילות','לא נשמר'); click('ביטול'); expect(names()).toEqual(['פעילות']);
+    click('היום שלי'); click('הוספת פעילות'); field('שם הפעילות','  '); click('שמירת פעילות'); expect(queryVisible(container, '[role="alert"]')?.textContent).toContain('כתבו שם');
+    field('שם הפעילות','פעילות'); field('חלק ביום','noon'); click('שמירת פעילות'); expect(queryVisible(container, '[role="alert"]')?.textContent).toContain('לא מתאימים'); expect(names()).toHaveLength(0);
+    field('חלק ביום','morning'); click('שמירת פעילות'); click('עריכת פעילות'); field('שם הפעילות','לא נשמר'); click('ביטול'); click('לעזוב בלי לשמור'); expect(names()).toEqual(['פעילות']);
   });
   it('keeps in-memory changes on write failure and lets saving recover', () => {
     click('היום שלי'); const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(() => {throw new Error('quota');});
-    add('לא אבד',7,0,'morning'); expect(names()).toEqual(['לא אבד']); expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא הצלחנו לשמור');
-    spy.mockRestore(); click('נסו לשמור שוב'); expect(container.querySelector('[role="alert"]')).toBeNull(); expect(loadActivities().activities[0].name).toBe('לא אבד');
+    add('לא אבד',7,0,'morning'); expect(names()).toEqual(['לא אבד']); expect(queryVisible(container, '[role="alert"]')?.textContent).toContain('לא הצלחנו לשמור');
+    spy.mockRestore(); click('נסו לשמור שוב'); expect(queryVisible(container, '[role="alert"]')).toBeNull(); expect(loadActivities().activities[0].name).toBe('לא אבד');
   });
   it('shows corrupted-data warning without automatically overwriting it', () => {
-    localStorage.setItem(activityStorageKey,'broken'); click('היום שלי'); expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא הצלחנו לטעון'); expect(localStorage.getItem(activityStorageKey)).toBe('broken');
+    localStorage.setItem(activityStorageKey,'broken'); click('היום שלי'); expect(queryVisible(container, '[role="alert"]')?.textContent).toContain('לא הצלחנו לטעון'); expect(localStorage.getItem(activityStorageKey)).toBe('broken');
   });
+  it('confirms edit and delete switches without changing the draft or saved activities on cancel', () => {
+    click('היום שלי'); add('משחק',7,0,'morning'); add('חוג',4,0,'afternoon');
+    const saved = localStorage.getItem(activityStorageKey);
+    click('עריכת משחק'); field('שם הפעילות','טיוטת משחק');
+    click('עריכת חוג'); expect(visibleText(container)).toContain('יש שינויים שלא נשמרו');
+    click('להישאר ולערוך'); expect(queryVisible<HTMLInputElement>(container,'input')?.value).toBe('טיוטת משחק');
+    expect(localStorage.getItem(activityStorageKey)).toBe(saved);
+    click('עריכת חוג'); click('לעזוב בלי לשמור'); expect(queryVisible<HTMLInputElement>(container,'input')?.value).toBe('חוג');
+    field('שם הפעילות','טיוטת חוג'); click('מחיקת משחק'); click('להישאר ולערוך');
+    expect(queryVisible<HTMLInputElement>(container,'input')?.value).toBe('טיוטת חוג');
+    click('מחיקת משחק'); click('לעזוב בלי לשמור'); expect(queryVisible(container,'#delete-description')?.textContent).toContain('משחק');
+    click('ביטול מחיקה'); expect(localStorage.getItem(activityStorageKey)).toBe(saved); expect(names()).toEqual(['משחק','חוג']);
+  });
+
 });

@@ -593,3 +593,33 @@ verification; it is not a production deployment server.
 
 Personal activities, completed baseline recommendations and practice rewards are saved in local browser storage; no backend, credentials,
 external fonts, or third-party services are required.
+
+## Child-trial flow proposal and implementation
+
+The pending child-trial PR adds **בואו נתרגל** as the primary entry: topic,
+practice-now/learn-first, mode, practice and clear continuation. All twenty modes
+have contextual help in a native modal dialog that leaves the question mounted;
+help/expanded hand exploration never grants rewards, records an attempt or clears
+a parent pause. The central flow retains one active practice through Home and
+requires confirmation before replacing unfinished practice. Successful parent
+reward reset invalidates that suspended practice; failed reset does not.
+
+**מבנה השעון** now includes free exploration with independently draggable hour
+and minute hands, one synchronized time, visible digital time, keyboard controls
+and an explicit demo-clock reset. Existing practice snapping rules stay unchanged.
+Minute topic names are **קפיצות של 5 דקות** and **צעדים של דקה אחת**, including the
+Baseline destination label. Lessons show explicit endings and replay controls.
+
+See [the Hebrew review, diagrams, three verification rounds and known gaps](docs/reviews/child-trial-flow.md).
+The supplementary learn-first links under **לימוד לפי נושא** now hand off to the
+same practice host as direct entry. Home resume, one active session, replacement
+confirmation, reward reset invalidation and next-topic completion apply to both
+entry paths. Returning to the originating lesson preserves its example and
+restores focus to the practice entry. Merely reentering resumes; an explicit
+restart is needed for a fresh question state/reward run.
+
+Unsaved My Day guards now cover direct switches to another activity's edit/delete
+as well as Home, cancel and new form. Cancelling preserves the draft and stored
+bytes; accepting discard executes only the requested action. Back/Escape cancel
+the pending discard. Deployment still requires owner approval.
+Physical devices, non-Chromium engines and screen readers remain unverified.

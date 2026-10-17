@@ -1,3 +1,4 @@
+import { useLessonFlow } from '../flow/context';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
@@ -20,6 +21,7 @@ function digitalTime(hour: number, minute: number) {
 }
 
 export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
+  const lessonFlow = useLessonFlow();
   const [index, setIndex] = useState(0);
   const [practice, setPractice] = useState<FiveMinutesPracticeMode | null>(null);
   const previousPractice = useRef<FiveMinutesPracticeMode | null>(null);
@@ -39,7 +41,7 @@ export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
   return <main className="home" dir="rtl">
     <header>
       <p className="eyebrow">מגלים את הזמן ביחד</p>
-      <h1>לימוד דקות</h1>
+      <h1>קפיצות של 5 דקות</h1><p>בין מספר למספר בשעון עוברות 5 דקות</p>
       <p className="welcome">בין מספר למספר עוברות 5 דקות.</p>
       <p>המחוג הארוך מראה את הדקות. המחוג הקצר מתקדם מעט בכל צעד אל השעה הבאה.</p>
       <p>סיבוב מלא הוא 60 דקות. כשהמחוג הארוך חוזר ל־12, מתחילה שעה חדשה ותצוגת הדקות חוזרת ל־00.</p>
@@ -61,6 +63,7 @@ export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
       <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
       <button className="start-button" type="button" disabled={index === examples.length - 1} onClick={() => setIndex(index + 1)}>הדוגמה הבאה</button>
     </nav>
+      {index === examples.length - 1 && <section className="lesson-end"><p role="status">סיימנו את הדוגמאות! אפשר ללמוד שוב, לתרגל או לחזור לבית.</p><button type="button" className="secondary-button" onClick={() => setIndex(0)}>נלמד שוב</button></section>}
     <section className="minute-mapping" aria-labelledby="minute-mapping-heading">
       <h2 id="minute-mapping-heading">מספרי השעון והדקות</h2>
       <ul>{Array.from({ length: 11 }, (_, index) => <li key={index}>המספר {index + 1}: {(index + 1) * 5} דקות</li>)}</ul>
@@ -79,7 +82,7 @@ export function FiveMinutesLesson({ onHome }: { onHome: () => void }) {
     <nav className="lesson-controls exercise-navigation" aria-label="תרגול דקות">
       {(Object.keys(fiveMinutesPracticeTitles) as FiveMinutesPracticeMode[]).map(mode => <button key={mode}
         ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
-        onClick={() => setPractice(mode)}>{fiveMinutesPracticeTitles[mode]}</button>)}
+        onClick={() => lessonFlow ? lessonFlow(mode) : setPractice(mode)}>{fiveMinutesPracticeTitles[mode]}</button>)}
     </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;

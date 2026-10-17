@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { characters, emptyLedger, grant, readLedger, restartRun, writeLedger, type Ledger, type PracticeId } from './ledger';
-const rewardContext = createContext<null | { ledger: Ledger; award: (practice: PracticeId, index: number) => ReturnType<typeof grant>; restart: (practice: PracticeId) => void; reset: () => boolean }>(null);
+const rewardContext = createContext<null | { ledger: Ledger; resetVersion: number; award: (practice: PracticeId, index: number) => ReturnType<typeof grant>; restart: (practice: PracticeId) => void; reset: () => boolean }>(null);
 const starLabel = (count: number) => count === 1 ? 'כוכב אחד' : `${count} כוכבים`;
 export const rewardSuccess = 'כל הכבוד! קיבלת כוכב ו־10 נקודות';
 export function RewardsProvider({ children }: { children: ReactNode }) {
   const [loaded] = useState(readLedger);
   const [blocked, setBlocked] = useState(loaded.blocked);
   const [ledger, setLedger] = useState(loaded.ledger);
+  const [resetVersion, setResetVersion] = useState(0);
   // Synchronous source of truth prevents stale React state from granting twice.
   const current = useRef(ledger);
   const unreadable = useRef(blocked);
@@ -20,10 +21,10 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     if (result.awarded) commit(result.ledger);
     return result;
   }
-  return <rewardContext.Provider value={{ledger, award, restart: practice => commit(restartRun(current.current, practice)), reset: () => {
+  return <rewardContext.Provider value={{ledger, resetVersion, award, restart: practice => commit(restartRun(current.current, practice)), reset: () => {
     const next = emptyLedger();
     if (!writeLedger(next)) return false;
-    current.current = next; unreadable.current = false; setLedger(next); setBlocked(false); setFailed(false); return true;
+    current.current = next; unreadable.current = false; setLedger(next); setBlocked(false); setFailed(false); setResetVersion(v => v + 1); return true;
   }}}>
     {children}
     {(blocked || failed) && <aside className="home reward-storage" dir="rtl" role="alert">

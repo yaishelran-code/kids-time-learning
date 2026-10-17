@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -12,8 +13,8 @@ beforeEach(() => {
   root = createRoot(container); act(() => root.render(<App />));
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { return [...container.querySelectorAll('button')].find(value => value.textContent === label)!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { return [...allVisible(container, 'button')].find(value => value.textContent === label)!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 const times = [...Array.from({ length: 13 }, (_, i) => [i === 12 ? 9 : 8, i === 12 ? 0 : i * 5]), [12, 5], [12, 55]];
 function hands(element: Element, hour: number, minute: number) {
   expect(element.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
@@ -21,12 +22,12 @@ function hands(element: Element, hour: number, minute: number) {
 }
 describe('five-minute lesson', () => {
   it('synchronizes all 15 examples, explanations, accessible descriptions and navigation boundaries', () => {
-    click('לימוד דקות');
+    click('קפיצות של 5 דקות');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
     for (let index = 0; index < times.length; index++) {
       const [hour, minute] = times[index];
-      const card = container.querySelector('.clock-card')!;
+      const card = queryVisible(container, '.clock-card')!;
       hands(card, hour, minute);
       expect(card.querySelector('h2')?.textContent).toContain(`דוגמה ${index + 1} מתוך 15`);
       expect(document.activeElement).toBe(card.querySelector('h2'));
@@ -36,7 +37,7 @@ describe('five-minute lesson', () => {
       expect(card.querySelector('title')?.textContent).toBe(`שעון אנלוגי: ${caption}`);
       expect(card.querySelector('.digital-time')?.getAttribute('aria-label')).toBe(caption);
       expect(card.querySelector('svg')?.getAttribute('role')).toBe('img');
-      expect(container.querySelector('[role="slider"]')).toBeNull();
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
       if (minute === 15) expect(card.textContent).toContain('רבע שעה');
       if (minute === 30) expect(card.textContent).toContain('חצי שעה');
       if (minute === 45) expect(card.textContent).toContain('שלושה רבעים');
@@ -46,32 +47,32 @@ describe('five-minute lesson', () => {
       if (index < times.length - 1) click('הדוגמה הבאה');
     }
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    click('הדוגמה הבאה'); hands(container.querySelector('.clock-card')!, 12, 55);
-    for (let index = times.length - 2; index >= 0; index--) { click('הדוגמה הקודמת'); hands(container.querySelector('.clock-card')!, ...times[index] as [number, number]); }
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
-    expect(container.textContent).not.toContain('לתשע');
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות'));
-    click('לימוד דקות'); hands(container.querySelector('.clock-card')!, 8, 0);
+    click('הדוגמה הבאה'); hands(queryVisible(container, '.clock-card')!, 12, 55);
+    for (let index = times.length - 2; index >= 0; index--) { click('הדוגמה הקודמת'); hands(queryVisible(container, '.clock-card')!, ...times[index] as [number, number]); }
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
+    expect(visibleText(container)).not.toContain('לתשע');
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('קפיצות של 5 דקות'));
+    click('קפיצות של 5 דקות'); hands(queryVisible(container, '.clock-card')!, 8, 0);
   });
   it('toggles minute labels without replacing hour numbers and teaches every mapping', () => {
-    click('לימוד דקות');
-    expect(container.querySelectorAll('[data-minute-label]')).toHaveLength(0);
+    click('קפיצות של 5 דקות');
+    expect(allVisible(container, '[data-minute-label]')).toHaveLength(0);
     click('סימוני דקות ליד המספרים');
     expect(button('סימוני דקות ליד המספרים').getAttribute('aria-pressed')).toBe('true');
-    const svg = container.querySelector('.clock-card svg')!;
+    const svg = queryVisible(container, '.clock-card svg')!;
     expect(svg.querySelectorAll('text:not([data-minute-label])')).toHaveLength(12);
     for (let number = 1; number <= 12; number++) {
       expect(svg.querySelector(`[data-minute-label="${number}"]`)?.textContent).toBe(number === 12 ? '60/00' : String(number * 5));
-      if (number < 12) expect(container.querySelector('.minute-mapping')?.textContent).toContain(`המספר ${number}: ${number * 5} דקות`);
+      if (number < 12) expect(queryVisible(container, '.minute-mapping')?.textContent).toContain(`המספר ${number}: ${number * 5} דקות`);
     }
-    click('הדוגמה הבאה'); expect(container.querySelectorAll('[data-minute-label]')).toHaveLength(12);
-    click('סימוני דקות ליד המספרים'); expect(container.querySelectorAll('[data-minute-label]')).toHaveLength(0);
+    click('הדוגמה הבאה'); expect(allVisible(container, '[data-minute-label]')).toHaveLength(12);
+    click('סימוני דקות ליד המספרים'); expect(allVisible(container, '[data-minute-label]')).toHaveLength(0);
   });
   it('compares 8:05, 8:10 and 8:15 in order', () => {
-    click('לימוד דקות');
-    const figures = [...container.querySelectorAll('.minutes-comparison-grid figure')];
+    click('קפיצות של 5 דקות');
+    const figures = [...allVisible(container, '.minutes-comparison-grid figure')];
     expect(figures).toHaveLength(3);
     figures.forEach((figure, index) => { hands(figure, 8, (index + 1) * 5); expect(figure.querySelector('bdi')?.textContent).toBe(`8:${String((index + 1) * 5).padStart(2, '0')}`); });
-    expect(container.textContent).toContain('בכל צעד עברו עוד 5 דקות');
+    expect(visibleText(container)).toContain('בכל צעד עברו עוד 5 דקות');
   });
 });

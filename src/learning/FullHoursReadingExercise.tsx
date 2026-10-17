@@ -1,3 +1,4 @@
+import { PracticeTools } from '../flow/PracticeTools';
 import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
@@ -29,10 +30,11 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
 
   function reset() { reward.restart(); setIndex(0); setSelected(null); setCompleted(false); }
 
-  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome}><PracticeTools meta={{ topic, index, completed: false, hour: target.hour, minute: 0 }} /></PracticePause>;
 
   if (completed) return (
     <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, hour: target.hour, minute: 0 }} />
       <header className="clock-card">
         <h1 ref={heading} tabIndex={-1}>כל הכבוד! סיימתם את תרגול קריאת השעון 🎉</h1>
       </header>
@@ -40,16 +42,18 @@ export function FullHoursReadingExercise({ onLesson, onHome }: { onLesson: () =>
       <nav className="lesson-controls" aria-label="סיום תרגול קריאת השעון">
         <button className="start-button" type="button" onClick={reset}>תרגלו שוב</button>
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
+        <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>
       </nav>
     </main>
   );
 
   return (
     <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, hour: target.hour, minute: 0 }} />
       <header>
         <p className="eyebrow">קוראים את השעון</p>
         <h1 ref={heading} tabIndex={-1}>מה השעה?</h1>
-        <p>הסתכלו על המחוגים ובחרו את השעה.</p>
+        <p>תרגיל {index + 1} מתוך {exercises.length}</p><p>הסתכלו על המחוגים ובחרו את השעה.</p>
       </header>
       <section className="clock-card" aria-label="השעון לקריאה">
         <AnalogClock hour={target.hour} />

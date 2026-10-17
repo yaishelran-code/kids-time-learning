@@ -1,3 +1,4 @@
+import { useLessonFlow } from '../flow/context';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
@@ -17,6 +18,7 @@ function digitalTime(hour: number, minute: number) {
 }
 
 export function QuarterHoursLesson({ onHome }: { onHome: () => void }) {
+  const lessonFlow = useLessonFlow();
   const [index, setIndex] = useState(0);
   const [practice, setPractice] = useState<QuarterPracticeMode | null>(null);
   const previousPractice = useRef<QuarterPracticeMode | null>(null);
@@ -58,6 +60,7 @@ export function QuarterHoursLesson({ onHome }: { onHome: () => void }) {
       <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
       <button className="start-button" type="button" disabled={index === examples.length - 1} onClick={() => setIndex(index + 1)}>הדוגמה הבאה</button>
     </nav>
+      {index === examples.length - 1 && <section className="lesson-end"><p role="status">סיימנו את הדוגמאות! אפשר ללמוד שוב, לתרגל או לחזור לבית.</p><button type="button" className="secondary-button" onClick={() => setIndex(0)}>נלמד שוב</button></section>}
     <section className="quarter-comparison" aria-labelledby="quarter-comparison-heading">
       <h2 id="quarter-comparison-heading">משבע עד שמונה: כל רבע שעה המחוגים מתקדמים</h2>
       <div className="quarter-comparison-grid">
@@ -70,7 +73,7 @@ export function QuarterHoursLesson({ onHome }: { onHome: () => void }) {
     <nav className="lesson-controls exercise-navigation" aria-label="תרגול רבעי שעות">
       {(Object.keys(quarterPracticeTitles) as QuarterPracticeMode[]).map(mode => <button key={mode}
         ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
-        onClick={() => setPractice(mode)}>{quarterPracticeTitles[mode]}</button>)}
+        onClick={() => lessonFlow ? lessonFlow(mode) : setPractice(mode)}>{quarterPracticeTitles[mode]}</button>)}
     </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;

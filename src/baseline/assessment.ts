@@ -2,7 +2,7 @@ import type { ClockTime } from '../learning/clockTime';
 export const skills = ['hourHand', 'minuteHand', 'fullHours', 'halfHours', 'quarterHours', 'digital'] as const;
 export type Skill = typeof skills[number];
 export type StartingPoint = 'structure' | 'fullHours' | 'halfHours' | 'quarterHours' | 'fiveMinutes';
-export const lessonNames: Record<StartingPoint, string> = { structure: 'מבנה השעון', fullHours: 'שעות שלמות', halfHours: 'חצי שעה', quarterHours: 'רבע שעה', fiveMinutes: 'דקות בקפיצות של חמש' };
+export const lessonNames: Record<StartingPoint, string> = { structure: 'מבנה השעון', fullHours: 'שעות שלמות', halfHours: 'חצי שעה', quarterHours: 'רבע שעה', fiveMinutes: 'קפיצות של 5 דקות' };
 export type Question = { skill: Skill; prompt: string; time: ClockTime; kind: 'hand' | 'analog' | 'digital'; choices: string[]; answer: string };
 export const questions: Question[] = [
   {skill:'hourHand',kind:'hand',prompt:'איזה מחוג מראה את השעות?',time:{hour:3,minute:0},choices:['המחוג הסגול','המחוג הירוק'],answer:'המחוג הסגול'},

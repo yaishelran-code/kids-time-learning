@@ -1,3 +1,4 @@
+import { useLessonFlow } from '../flow/context';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { hourNames } from './examples';
@@ -31,6 +32,7 @@ function explanation(hour: number, minute: number) {
 }
 
 export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
+  const lessonFlow = useLessonFlow();
   const [index, setIndex] = useState(0);
   const [practice, setPractice] = useState<ExactMinutesPracticeMode | null>(null);
   const previousPractice = useRef<ExactMinutesPracticeMode | null>(null);
@@ -47,7 +49,7 @@ export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
   return <main className="home" dir="rtl">
     <header>
       <p className="eyebrow">מגלים את הזמן ביחד</p>
-      <h1>לימוד דקות מדויקות</h1>
+      <h1>צעדים של דקה אחת</h1><p>בין שני סימונים קטנים בשעון עוברת דקה אחת</p>
       <p className="welcome">בין שני סימונים קטנים עוברת דקה אחת.</p>
       <p>המספרים הגדולים מציינים שעות. הסימונים שעל שפת השעון מציינים דקות. בין שני מספרים סמוכים יש חמישה צעדים של דקה.</p>
       <p>המחוג הארוך מראה את הדקות. המחוג הקצר מתקדם מעט בכל דקה. סיבוב מלא הוא 60 דקות, ואז מתחילה שעה חדשה והדקות חוזרות ל־00.</p>
@@ -64,6 +66,7 @@ export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
       <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
       <button className="start-button" type="button" disabled={index === examples.length - 1} onClick={() => setIndex(index + 1)}>הדוגמה הבאה</button>
     </nav>
+      {index === examples.length - 1 && <section className="lesson-end"><p role="status">סיימנו את הדוגמאות! אפשר ללמוד שוב, לתרגל או לחזור לבית.</p><button type="button" className="secondary-button" onClick={() => setIndex(0)}>נלמד שוב</button></section>}
     <section className="quarter-comparison" aria-labelledby="exact-minutes-comparison-heading">
       <h2 id="exact-minutes-comparison-heading">מחמש לשבע דקות: בכל צעד עוברת דקה</h2>
       <div className="quarter-comparison-grid minutes-comparison-grid">
@@ -87,7 +90,7 @@ export function ExactMinutesLesson({ onHome }: { onHome: () => void }) {
     <nav className="lesson-controls exercise-navigation" aria-label="תרגול דקות מדויקות">
       {(Object.keys(exactMinutesPracticeTitles) as ExactMinutesPracticeMode[]).map(mode => <button key={mode}
         ref={element => { entries.current[mode] = element; }} className="secondary-button" type="button"
-        onClick={() => setPractice(mode)}>{exactMinutesPracticeTitles[mode]}</button>)}
+        onClick={() => lessonFlow ? lessonFlow(mode) : setPractice(mode)}>{exactMinutesPracticeTitles[mode]}</button>)}
     </nav>
     <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
   </main>;

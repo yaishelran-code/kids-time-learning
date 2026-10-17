@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -14,10 +15,10 @@ beforeEach(() => {
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
 function button(label: string) {
-  const found = [...container.querySelectorAll('button')].find(value => value.textContent === label);
+  const found = [...allVisible(container, 'button')].find(value => value.textContent === label);
   expect(found).toBeDefined(); return found!;
 }
-function click(label: string) { act(() => button(label).click()); }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 function hands(element: Element, hourAngle: number, minuteAngle: number) {
   expect(element.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hourAngle} 150 150)`);
   expect(element.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minuteAngle ? `rotate(${minuteAngle} 150 150)` : null);
@@ -31,13 +32,13 @@ const sequence = [
 describe('quarter-hour lesson', () => {
   it('teaches the sequence, synchronizes digital time, and handles both navigation boundaries', () => {
     click('לימוד רבע שעה');
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
-    expect(container.textContent).toContain('רבע שעה = 15 דקות');
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
+    expect(visibleText(container)).toContain('רבע שעה = 15 דקות');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
     for (let index = 0; index < sequence.length; index++) {
       const [hour, minute, hourAngle, minuteAngle, wording] = sequence[index];
-      const card = container.querySelector('.clock-card')!;
+      const card = queryVisible(container, '.clock-card')!;
       hands(card, hourAngle, minuteAngle);
       expect(document.activeElement).toBe(card.querySelector('h2'));
       expect(card.querySelector('.digital-time')?.textContent).toBe(`${hour}:${String(minute).padStart(2, '0')}`);
@@ -47,35 +48,35 @@ describe('quarter-hour lesson', () => {
       expect(card.querySelector('svg title')?.textContent).toContain(minute === 15 ? `ו־${minute} דקות` : wording);
       if (minute === 15) expect(card.textContent).toContain(`רבע מהדרך מ־${hour} ל־${hour % 12 + 1}`);
       if (minute === 45) expect(card.textContent).toContain(`שלושה רבעים מהדרך מ־${hour} ל־${hour % 12 + 1}`);
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      expect(container.textContent).not.toContain('רבע לשמונה');
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      expect(visibleText(container)).not.toContain('רבע לשמונה');
       if (index < sequence.length - 1) click('הדוגמה הבאה');
     }
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    click('הדוגמה הבאה'); hands(container.querySelector('.clock-card')!, 22.5, 270);
+    click('הדוגמה הבאה'); hands(queryVisible(container, '.clock-card')!, 22.5, 270);
     for (let index = sequence.length - 2; index >= 0; index--) {
       click('הדוגמה הקודמת');
-      hands(container.querySelector('.clock-card')!, sequence[index][2], sequence[index][3]);
-      expect(document.activeElement).toBe(container.querySelector('.clock-card h2'));
+      hands(queryVisible(container, '.clock-card')!, sequence[index][2], sequence[index][3]);
+      expect(document.activeElement).toBe(queryVisible(container, '.clock-card h2'));
     }
     click('חזרה לבית');
-    expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
+    expect(queryVisible(container, 'h1')?.textContent).toBe('לומדים את השעה');
     expect(document.activeElement).toBe(button('לימוד רבע שעה'));
     expect(button('התחל ללמוד').disabled).toBe(false);
     expect(button('נלמד חצי שעה').disabled).toBe(false);
-    click('לימוד רבע שעה'); hands(container.querySelector('.clock-card')!, 210, 0);
+    click('לימוד רבע שעה'); hands(queryVisible(container, '.clock-card')!, 210, 0);
   });
 
   it('visually compares full, quarter, half and three-quarter hours in a predictable order', () => {
     click('לימוד רבע שעה');
-    const figures = [...container.querySelectorAll('.quarter-comparison figure')];
+    const figures = [...allVisible(container, '.quarter-comparison figure')];
     expect(figures).toHaveLength(4);
     for (let index = 0; index < figures.length; index++) {
       hands(figures[index], sequence[index][2], sequence[index][3]);
       expect(figures[index].querySelector('bdi')?.textContent).toBe(`7:${String(index * 15).padStart(2, '0')}`);
       expect(figures[index].querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
     }
-    expect([...container.querySelectorAll('button')].map(value => value.textContent)).toEqual([
+    expect([...allVisible(container, 'button')].map(value => value.textContent)).toEqual([
       'הדוגמה הקודמת', 'הדוגמה הבאה', 'תרגול כיוון רבעי שעות', 'תרגול קריאת רבעי שעות',
       'תרגול משולב — שעות שלמות, חצאים ורבעים', 'חזרה לבית',
     ]);
@@ -86,6 +87,6 @@ describe('quarter-hour clock geometry', () => {
   it.each(sequence)('positions the hands at %s:%s with exact angles', (hour, minute, hourAngle, minuteAngle) => {
     act(() => root.render(<AnalogClock hour={hour} minute={minute} />));
     hands(container, hourAngle, minuteAngle);
-    expect(container.querySelector('[role="slider"]')).toBeNull();
+    expect(queryVisible(container, '[role="slider"]')).toBeNull();
   });
 });
