@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { readLedger } from '../rewards/ledger';
 import { act } from 'react';
@@ -11,10 +12,10 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement, root: Root;
 beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { const value = [...container.querySelectorAll('button')].find(item => item.textContent === label); expect(value).toBeDefined(); return value!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { const value = [...allVisible(container, 'button')].find(item => item.textContent === label); expect(value).toBeDefined(); return value!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 function choose(storyIndex: number, name: string) {
-  const group = container.querySelectorAll('.day-period-answers')[storyIndex];
+  const group = allVisible(container, '.day-period-answers')[storyIndex];
   const value = [...group.querySelectorAll('button')].find(item => item.textContent === name);
   expect(value).toBeDefined(); act(() => value!.click());
 }
@@ -74,13 +75,13 @@ describe('day-period practice content', () => {
     open(mode);
     for (const [index, question] of dayPracticeQuestions[mode].entries()) {
       const correct = expectedPeriods(mode, index);
-      expect(container.textContent).toContain(`תרגיל ${index + 1} מתוך ${dayPracticeQuestions[mode].length}`);
-      expect(document.activeElement).toBe(container.querySelector('h1'));
-      expect(container.querySelector('main')?.dir).toBe('rtl');
-      expect(container.querySelector('.day-practice-explanation')).toBeNull();
+      expect(visibleText(container)).toContain(`תרגיל ${index + 1} מתוך ${dayPracticeQuestions[mode].length}`);
+      expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+      expect(queryVisible(container, 'main')?.dir).toBe('rtl');
+      expect(queryVisible(container, '.day-practice-explanation')).toBeNull();
       expect(button('בדיקה').disabled).toBe(true);
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      const stories = [...container.querySelectorAll('.day-practice-story')];
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      const stories = [...allVisible(container, '.day-practice-story')];
       expect(stories).toHaveLength(question.stories.length);
       stories.forEach((element, storyIndex) => {
         const minutes = expectedMinutes(mode, index)[storyIndex];
@@ -100,39 +101,39 @@ describe('day-period practice content', () => {
         if (storyIndex === 0 && question.kind === 'compare') expect(button('בדיקה').disabled).toBe(true);
       });
       expect(button('בדיקה').disabled).toBe(false); click('בדיקה');
-      expect(container.querySelector('[role="status"]')?.textContent).toContain('נסו שוב');
-      expect(container.querySelector('.day-practice-explanation')).toBeNull();
-      expect([...container.querySelectorAll('.day-period-answers button')].every(b => !(b as HTMLButtonElement).disabled)).toBe(true);
+      expect(queryVisible(container, '[role="status"]')?.textContent).toContain('נסו שוב');
+      expect(queryVisible(container, '.day-practice-explanation')).toBeNull();
+      expect([...allVisible(container, '.day-period-answers button')].every(b => !(b as HTMLButtonElement).disabled)).toBe(true);
       correct.forEach((id, storyIndex) => {
         choose(storyIndex, dayPeriods.find(period => period.id === id)!.name);
-        expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+        expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
       });
       click('בדיקה');
-      expect(container.querySelector('[role="status"]')?.textContent).toContain('קיבלת כוכב');
-      const explanation = container.querySelector('.day-practice-explanation')!;
+      expect(queryVisible(container, '[role="status"]')?.textContent).toContain('קיבלת כוכב');
+      const explanation = queryVisible(container, '.day-practice-explanation')!;
       correct.forEach((id, storyIndex) => {
         expect(explanation.textContent).toContain(dayPeriods.find(period => period.id === id)!.name);
         expect(explanation.textContent).toContain(question.stories[storyIndex].clue);
       });
       if (question.kind === 'compare') expect(explanation.textContent).toContain('המחוגים זהים, אבל ההקשר בסיפור שונה');
-      expect([...container.querySelectorAll('.day-period-answers button')].every(b => (b as HTMLButtonElement).disabled)).toBe(true);
-      const first = container.querySelector<HTMLButtonElement>('.day-period-answers button')!;
-      const before = container.querySelectorAll('[aria-pressed="true"]').length;
-      act(() => first.click()); expect(container.querySelectorAll('[aria-pressed="true"]').length).toBe(before);
+      expect([...allVisible(container, '.day-period-answers button')].every(b => (b as HTMLButtonElement).disabled)).toBe(true);
+      const first = queryVisible<HTMLButtonElement>(container, '.day-period-answers button')!;
+      const before = allVisible(container, '[aria-pressed="true"]').length;
+      act(() => first.click()); expect(allVisible(container, '[aria-pressed="true"]').length).toBe(before);
       expect(document.activeElement).toBe(button('התרגיל הבא')); click('התרגיל הבא');
-      expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
+      expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
     }
-    expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(queryVisible(container, 'h1')?.textContent).toContain('סיימתם');
     expect(readLedger().ledger.stars).toBe(dayPracticeQuestions[mode].length);
     expect(readLedger().ledger.runs[`day-${mode}`]!.awarded).toHaveLength(dayPracticeQuestions[mode].length);
-    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * dayPracticeQuestions[mode].length} נקודות ו־${dayPracticeQuestions[mode].length} כוכבים.`);
-    expect(container.querySelector('svg')).toBeNull(); expect(container.querySelector('.day-practice-explanation')).toBeNull();
-    expect(document.activeElement).toBe(container.querySelector('h1'));
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * dayPracticeQuestions[mode].length} נקודות ו־${dayPracticeQuestions[mode].length} כוכבים.`);
+    expect(queryVisible(container, 'svg')).toBeNull(); expect(queryVisible(container, '.day-practice-explanation')).toBeNull();
+    expect(document.activeElement).toBe(queryVisible(container, 'h1'));
     click('תרגלו שוב');
-    expect(container.textContent).toContain(`תרגיל 1 מתוך ${dayPracticeQuestions[mode].length}`);
-    expect(button('בדיקה').disabled).toBe(true); expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    expect(container.querySelector('[role="status"]')?.textContent).toBe('');
-    click('חזרה ללימוד'); expect(container.querySelector('.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
+    expect(visibleText(container)).toContain(`תרגיל 1 מתוך ${dayPracticeQuestions[mode].length}`);
+    expect(button('בדיקה').disabled).toBe(true); expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
+    expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
+    click('חזרה ללימוד'); expect(queryVisible(container, '.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
     expect(document.activeElement).toBe(button(dayPracticeTitles[mode]));
     click(dayPracticeTitles[mode]); click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד חלקי היום'));
   });
@@ -140,13 +141,13 @@ describe('day-period practice content', () => {
   it('checks both comparison selections together, and either single error keeps all solutions hidden', () => {
     open('compare');
     choose(0, 'בוקר'); choose(1, 'לילה'); click('בדיקה');
-    expect(container.querySelector('[role="status"]')?.textContent).toContain('נסו שוב');
-    expect(container.querySelector('.day-practice-explanation')).toBeNull();
-    choose(1, 'ערב'); expect(container.querySelector('[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[role="status"]')?.textContent).toContain('נסו שוב');
+    expect(queryVisible(container, '.day-practice-explanation')).toBeNull();
+    choose(1, 'ערב'); expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
     choose(0, 'צהריים'); click('בדיקה');
-    expect(container.querySelector('[role="status"]')?.textContent).toContain('נסו שוב');
-    expect(container.querySelector('.day-practice-explanation')).toBeNull();
-    choose(0, 'בוקר'); click('בדיקה'); expect(container.querySelector('.day-practice-explanation')).not.toBeNull();
+    expect(queryVisible(container, '[role="status"]')?.textContent).toContain('נסו שוב');
+    expect(queryVisible(container, '.day-practice-explanation')).toBeNull();
+    choose(0, 'בוקר'); click('בדיקה'); expect(queryVisible(container, '.day-practice-explanation')).not.toBeNull();
   });
 
   it.each(['identify', 'compare', 'mixed'] as const)('leaves %s after an incorrect answer and returns fresh', mode => {
@@ -154,11 +155,11 @@ describe('day-period practice content', () => {
     const q = dayPracticeQuestions[mode][0];
     q.stories.forEach((item, i) => choose(i, dayPracticeChoices(item, 0, i).find(period => period.id !== expectedPeriods(mode, 0)[i])!.name));
     click('בדיקה'); click('חזרה ללימוד');
-    expect(container.querySelector('.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
-    click(dayPracticeTitles[mode]); expect(container.querySelector('[role="status"]')?.textContent).toBe('');
-    expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
+    expect(queryVisible(container, '.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
+    click(dayPracticeTitles[mode]); expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
     expect(button('בדיקה').disabled).toBe(true); click('חזרה לבית');
-    click('לימוד חלקי היום'); click(dayPracticeTitles[mode]); expect(container.textContent).toContain('תרגיל 1 מתוך');
+    click('לימוד חלקי היום'); click(dayPracticeTitles[mode]); expect(visibleText(container)).toContain('תרגיל 1 מתוך');
   });
 
   it.each(['identify', 'compare', 'mixed'] as const)('preserves the lesson example and restores its entry from %s completion', mode => {
@@ -167,7 +168,7 @@ describe('day-period practice content', () => {
       expectedPeriods(mode, index).forEach((id, i) => choose(i, dayPeriods.find(period => period.id === id)!.name));
       click('בדיקה'); click('התרגיל הבא');
     });
-    click('חזרה ללימוד'); expect(container.querySelector('.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
+    click('חזרה ללימוד'); expect(queryVisible(container, '.day-example h2')?.textContent).toContain('דוגמה 2 מתוך 10');
     expect(document.activeElement).toBe(button(dayPracticeTitles[mode]));
   });
 });

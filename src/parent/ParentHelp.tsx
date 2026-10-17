@@ -51,7 +51,7 @@ export function usePracticeHelp(topic: Topic) {
   const paused = help.blocked || help.state.mistakes[topic] >= 3;
   const wasPaused = useRef(paused);
   useEffect(() => {
-    if (wasPaused.current && !paused) document.querySelector<HTMLElement>('main h1')?.focus();
+    if (wasPaused.current && !paused) Array.from(document.querySelectorAll<HTMLElement>('main h1')).find(element=>!element.closest('[hidden]'))?.focus();
     wasPaused.current = paused;
   }, [paused]);
   return { paused, attempt: (correct: boolean) => help.attempt(topic, correct) };

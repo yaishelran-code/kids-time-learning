@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -15,19 +16,19 @@ beforeEach(() => { localStorage.clear();
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
 function button(label: string) {
-  const found = [...container.querySelectorAll('button')].find(value => value.textContent === label);
+  const found = [...allVisible(container, 'button')].find(value => value.textContent === label);
   expect(found, `button ${label}`).toBeDefined(); return found!;
 }
-function click(label: string) { act(() => button(label).click()); }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 function key(value: string) {
-  act(() => container.querySelector('[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true })));
+  act(() => queryVisible(container, '[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true })));
 }
 function open(mode: string) { click('נלמד חצי שעה'); click(mode); }
 function hands(hour: number, minute: number) {
-  expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
-  expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? 'rotate(180 150 150)' : null);
+  expect(queryVisible(container, '[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
+  expect(queryVisible(container, '[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? 'rotate(180 150 150)' : null);
 }
-function status() { return container.querySelector('[role="status"]')?.textContent; }
+function status() { return queryVisible(container, '[role="status"]')?.textContent; }
 function setTime(hour: number, minute: number) {
   key('Home'); for (let step = 0; step < (hour % 12 * 2 + minute / 30); step++) key('ArrowRight');
 }
@@ -38,7 +39,7 @@ function pointer(target: Element, type: string, angle: number, pointerType: stri
   act(() => target.dispatchEvent(event));
 }
 function mockSvg() {
-  const svg = container.querySelector('svg')!;
+  const svg = queryVisible(container, 'svg')!;
   vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({ left: 20, top: 30, width: 300, height: 300 } as DOMRect);
   Object.assign(svg, { setPointerCapture: vi.fn(), hasPointerCapture: () => true, releasePointerCapture: vi.fn() });
   return svg;
@@ -47,31 +48,31 @@ function mockSvg() {
 describe('half-hour practice flows', () => {
   it('validates setting, retries without a solution, and clears success after movement', () => {
     open('תרגול כיוון חצי שעה'); hands(7, 0);
-    expect(container.querySelector('.digital-time')).toBeNull();
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
-    expect(container.querySelector('.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
-    expect(container.querySelector('[role="slider"]')?.getAttribute('aria-label')).toBe('מחוג הדקות');
+    expect(queryVisible(container, '.digital-time')).toBeNull();
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
+    expect(queryVisible(container, '.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
+    expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-label')).toBe('מחוג הדקות');
     click('בדיקה'); expect(status()).toBe('כמעט! נסו שוב');
     expect(status()).not.toContain('7:30');
-    expect(container.textContent).not.toContain('התרגיל הבא');
+    expect(visibleText(container)).not.toContain('התרגיל הבא');
     key('ArrowRight'); hands(7, 30); expect(status()).toBe('');
     click('בדיקה'); expect(status()).toContain('כל הכבוד');
     expect(document.activeElement).toBe(button('התרגיל הבא'));
     key('ArrowDown'); hands(7, 0); expect(status()).toBe('');
-    expect(container.textContent).not.toContain('התרגיל הבא');
+    expect(visibleText(container)).not.toContain('התרגיל הבא');
   });
 
   it('completes all setting targets including 12:30, then restarts and returns home', () => {
     open('תרגול כיוון חצי שעה');
     for (const hour of [7, 1, 3, 6, 10, 12]) {
-      expect(container.querySelector('.exercise-target bdi')?.textContent).toBe(`${hour}:30`);
+      expect(queryVisible(container, '.exercise-target bdi')?.textContent).toBe(`${hour}:30`);
       hands(hour, 0); key('ArrowRight'); hands(hour, 30);
       click('בדיקה'); click('התרגיל הבא');
     }
-    expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול השעות השלמות וחצאי השעות 🎉');
-    expect(document.activeElement).toBe(container.querySelector('h1'));
-    expect(container.querySelector('[role="slider"]')).toBeNull();
-    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
+    expect(queryVisible(container, 'h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול השעות השלמות וחצאי השעות 🎉');
+    expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+    expect(queryVisible(container, '[role="slider"]')).toBeNull();
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(7, 0); expect(status()).toBe('');
     click('חזרה לבית'); expect(document.activeElement).toBe(button('נלמד חצי שעה'));
   });
@@ -80,10 +81,10 @@ describe('half-hour practice flows', () => {
     open('תרגול קריאת חצי שעה');
     for (const hour of [1, 3, 6, 8, 10, 12]) {
       hands(hour, 30);
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      expect(container.querySelector('.digital-time')).toBeNull();
-      expect(container.querySelector('svg title')?.textContent).toContain('וחצי');
-      const answers = [...container.querySelectorAll('.reading-answers button')];
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      expect(queryVisible(container, '.digital-time')).toBeNull();
+      expect(queryVisible(container, 'svg title')?.textContent).toContain('וחצי');
+      const answers = [...allVisible(container, '.reading-answers button')];
       expect(answers).toHaveLength(3);
       expect(new Set(answers.map(value => value.textContent)).size).toBe(3);
       expect(answers.filter(value => value.textContent === `${hour}:30`)).toHaveLength(1);
@@ -93,10 +94,10 @@ describe('half-hour practice flows', () => {
       expect(answers.every(value => (value as HTMLButtonElement).disabled)).toBe(true);
       click('התרגיל הבא');
     }
-    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(1, 30); expect(status()).toBe('');
-    expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    click('חזרה ללימוד'); expect(container.querySelector('h1')?.textContent).toBe('חצי שעה');
+    expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
+    click('חזרה ללימוד'); expect(queryVisible(container, 'h1')?.textContent).toBe('חצי שעה');
   });
 
   it('mixes setting and reading of full and half hours and only completes after the final correct answer', () => {
@@ -105,12 +106,12 @@ describe('half-hour practice flows', () => {
     for (const [hour, minute, kind] of sequence) {
       if (kind === 'setting') {
         click('בדיקה'); expect(status()).toBe('כמעט! נסו שוב');
-        expect(container.textContent).not.toContain('תרגלו שוב');
+        expect(visibleText(container)).not.toContain('תרגלו שוב');
         key('ArrowRight'); hands(hour, minute); click('בדיקה');
       } else { hands(hour, minute); click(`${hour}:${minute ? '30' : '00'}`); }
       expect(status()).toContain('כל הכבוד'); click('התרגיל הבא');
     }
-    expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     click('תרגלו שוב'); hands(4, 0); expect(status()).toBe('');
   });
 
@@ -125,7 +126,7 @@ describe('half-hour practice flows', () => {
     open('תרגול כיוון חצי שעה');
     for (let hour = 1; hour <= 12; hour++) for (const minute of [0, 30]) {
       setTime(hour, minute); hands(hour, minute);
-      expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuetext')).toBe(`השעה ${hour}:${minute ? '30' : '00'}`);
+      expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-valuetext')).toBe(`השעה ${hour}:${minute ? '30' : '00'}`);
     }
     key('ArrowUp'); hands(1, 0); key('ArrowLeft'); hands(12, 30);
     key('Home'); hands(12, 0); key('ArrowDown'); hands(11, 30);
@@ -133,7 +134,7 @@ describe('half-hour practice flows', () => {
   });
 
   it.each(['mouse', 'touch'])('tracks %s rotation, reverse motion, twelve crossing and capture cancellation', pointerType => {
-    open('תרגול כיוון חצי שעה'); const svg = mockSvg(); const slider = container.querySelector('[role="slider"]')!;
+    open('תרגול כיוון חצי שעה'); const svg = mockSvg(); const slider = queryVisible(container, '[role="slider"]')!;
     pointer(slider, 'pointerdown', 0, pointerType, 1, { isPrimary: false });
     pointer(svg, 'pointermove', 120, pointerType); hands(7, 0);
     pointer(slider, 'pointerdown', 0, pointerType);
@@ -159,8 +160,8 @@ describe('half-hour practice flows', () => {
   });
 
   it('ignores center dragging and refuses to independently move the hour hand', () => {
-    open('תרגול כיוון חצי שעה'); const svg = mockSvg(); const slider = container.querySelector('[role="slider"]')!;
-    pointer(container.querySelector('[data-hand="hour"]')!, 'pointerdown', 0, 'mouse');
+    open('תרגול כיוון חצי שעה'); const svg = mockSvg(); const slider = queryVisible(container, '[role="slider"]')!;
+    pointer(queryVisible(container, '[data-hand="hour"]')!, 'pointerdown', 0, 'mouse');
     pointer(svg, 'pointermove', 120, 'mouse'); hands(7, 0);
     pointer(slider, 'pointerdown', 0, 'mouse', 1, { clientX: 170, clientY: 180 });
     expect(svg.setPointerCapture).not.toHaveBeenCalled();
@@ -183,7 +184,7 @@ describe('clock geometry', () => {
   it('keeps a controlled clock synchronized through a complete revolution', () => {
     function Clock() { const [time, setTime] = useState<ClockTime>({ hour: 11, minute: 30 }); return <AnalogClock {...time} onTimeChange={setTime} />; }
     act(() => root.render(<Clock />)); const svg = mockSvg();
-    pointer(container.querySelector('[role="slider"]')!, 'pointerdown', 180, 'touch');
+    pointer(queryVisible(container, '[role="slider"]')!, 'pointerdown', 180, 'touch');
     for (const angle of [240, 300, 360]) pointer(svg, 'pointermove', angle, 'touch'); hands(12, 0);
     for (const angle of [60, 120, 180]) pointer(svg, 'pointermove', angle, 'touch'); hands(12, 30);
   });

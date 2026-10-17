@@ -611,9 +611,15 @@ Minute topic names are **קפיצות של 5 דקות** and **צעדים של ד
 Baseline destination label. Lessons show explicit endings and replay controls.
 
 See [the Hebrew review, diagrams, three verification rounds and known gaps](docs/reviews/child-trial-flow.md).
-The legacy learn-first links remain under **לימוד לפי נושא**; central-flow resume
-and next-topic routing do not yet cover practice started through those legacy
-links. Unsaved My Day guards cover Home/cancel/new-form but not every direct
-edit/delete switch. These are explicitly open #50 acceptance gaps, not verified
-completed behavior. This PR must not auto-close #50 or deploy before owner review.
+The supplementary learn-first links under **לימוד לפי נושא** now hand off to the
+same practice host as direct entry. Home resume, one active session, replacement
+confirmation, reward reset invalidation and next-topic completion apply to both
+entry paths. Returning to the originating lesson preserves its example and
+restores focus to the practice entry. Merely reentering resumes; an explicit
+restart is needed for a fresh question state/reward run.
+
+Unsaved My Day guards now cover direct switches to another activity's edit/delete
+as well as Home, cancel and new form. Cancelling preserves the draft and stored
+bytes; accepting discard executes only the requested action. Back/Escape cancel
+the pending discard. Deployment still requires owner approval.
 Physical devices, non-Chromium engines and screen readers remain unverified.

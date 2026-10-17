@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { readLedger } from '../rewards/ledger';
 import { act } from 'react';
@@ -10,8 +11,8 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 let container: HTMLDivElement, root: Root;
 beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { const value = [...container.querySelectorAll('button')].find(b => b.textContent === label); expect(value).toBeDefined(); return value!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { const value = [...allVisible(container, 'button')].find(b => b.textContent === label); expect(value).toBeDefined(); return value!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 const expected = [180, 60, 120, 20, 30, 15, 30, 20, 20, 90, 100, 150];
 const periods: Record<string, number> = { 'בבוקר': 0, 'בצהריים': 12, 'אחר הצהריים': 12, 'בערב': 12 };
 function absolute(hour: number, minute: number, period: string) { return hour % 12 * 60 + minute + periods[period] * 60; }
@@ -46,13 +47,13 @@ describe('relative-time practice acceptance', () => {
   it.each(['elapsed', 'remaining', 'mixed'] as const)('completes %s with hidden explanation, retry, locking, navigation and reset', mode => {
     click('כמה זמן עבר ונשאר?'); click('הדוגמה הבאה'); click(relativeTimePracticeTitles[mode]);
     for (const [index, q] of relativeTimeExercises[mode].entries()) {
-      expect(container.textContent).toContain(`תרגיל ${index + 1} מתוך ${relativeTimeExercises[mode].length}`);
-      expect(document.activeElement).toBe(container.querySelector('h1'));
-      expect(container.querySelector('main')?.dir).toBe('rtl');
-      expect(container.querySelectorAll('svg[role="img"]')).toHaveLength(2);
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      expect(container.querySelectorAll('.digital-time[dir="ltr"]')).toHaveLength(2);
-      [...container.querySelectorAll('figure')].forEach((figure, i) => {
+      expect(visibleText(container)).toContain(`תרגיל ${index + 1} מתוך ${relativeTimeExercises[mode].length}`);
+      expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+      expect(queryVisible(container, 'main')?.dir).toBe('rtl');
+      expect(allVisible(container, 'svg[role="img"]')).toHaveLength(2);
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      expect(allVisible(container, '.digital-time[dir="ltr"]')).toHaveLength(2);
+      [...allVisible(container, 'figure')].forEach((figure, i) => {
         const time = i ? q.end : q.start;
         const role = q.kind === 'elapsed' ? i ? 'עכשיו' : 'התחלנו' : i ? 'הפעילות מתחילה' : 'עכשיו';
         expect(figure.querySelector('h2')?.textContent).toBe(role);
@@ -61,41 +62,41 @@ describe('relative-time practice acceptance', () => {
         expect(figure.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${time.hour % 12 * 30 + time.minute * .5} 150 150)`);
         expect(figure.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(time.minute ? `rotate(${time.minute * 6} 150 150)` : null);
       });
-      expect(container.querySelector('.relative-calculation')).toBeNull();
-      expect(container.querySelector('.relative-timeline')).toBeNull();
+      expect(queryVisible(container, '.relative-calculation')).toBeNull();
+      expect(queryVisible(container, '.relative-timeline')).toBeNull();
       expect(button('בדיקה').disabled).toBe(true);
       const total = durationMinutes(q.start, q.end);
       click(durationLabel(durationChoices(total, index).find(n => n !== total)!)); click('בדיקה');
-      expect(container.querySelector('[role="status"]')?.textContent).toBe('כמעט! נסו שוב');
-      expect(container.querySelector('.relative-calculation')).toBeNull();
-      click(durationLabel(total)); expect(container.querySelector('[role="status"]')?.textContent).toBe(''); click('בדיקה');
-      expect(container.querySelector('.relative-answer')?.textContent).toContain(durationLabel(total));
-      expect(container.querySelector('.relative-calculation')?.textContent).toContain('סופרים קדימה');
-      expect([...container.querySelectorAll('.duration-answers button')].every(b => (b as HTMLButtonElement).disabled)).toBe(true);
+      expect(queryVisible(container, '[role="status"]')?.textContent).toBe('כמעט! נסו שוב');
+      expect(queryVisible(container, '.relative-calculation')).toBeNull();
+      click(durationLabel(total)); expect(queryVisible(container, '[role="status"]')?.textContent).toBe(''); click('בדיקה');
+      expect(queryVisible(container, '.relative-answer')?.textContent).toContain(durationLabel(total));
+      expect(queryVisible(container, '.relative-calculation')?.textContent).toContain('סופרים קדימה');
+      expect([...allVisible(container, '.duration-answers button')].every(b => (b as HTMLButtonElement).disabled)).toBe(true);
       expect(document.activeElement).toBe(button('התרגיל הבא')); click('התרגיל הבא');
     }
-    expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(queryVisible(container, 'h1')?.textContent).toContain('סיימתם');
     expect(readLedger().ledger.stars).toBe(relativeTimeExercises[mode].length);
     expect(readLedger().ledger.runs[`relative-${mode}`]!.awarded).toHaveLength(relativeTimeExercises[mode].length);
-    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * relativeTimeExercises[mode].length} נקודות ו־${relativeTimeExercises[mode].length} כוכבים.`);
-    expect(container.querySelector('.relative-calculation')).toBeNull();
-    click('חזרה ללימוד'); expect(container.querySelector('h2')?.textContent).toContain('דוגמה 2 מתוך 12');
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * relativeTimeExercises[mode].length} נקודות ו־${relativeTimeExercises[mode].length} כוכבים.`);
+    expect(queryVisible(container, '.relative-calculation')).toBeNull();
+    click('חזרה ללימוד'); expect(queryVisible(container, 'h2')?.textContent).toContain('דוגמה 2 מתוך 12');
     expect(document.activeElement).toBe(button(relativeTimePracticeTitles[mode]));
     click(relativeTimePracticeTitles[mode]);
     const questions = relativeTimeExercises[mode];
     for (const q of questions) { click(durationLabel(durationMinutes(q.start, q.end))); click('בדיקה'); click('התרגיל הבא'); }
-    click('תרגלו שוב'); expect(container.textContent).toContain(`תרגיל 1 מתוך ${questions.length}`);
-    expect(container.querySelector('[aria-pressed="true"]')).toBeNull(); expect(button('בדיקה').disabled).toBe(true);
-    expect(container.querySelector('.relative-calculation')).toBeNull();
+    click('תרגלו שוב'); expect(visibleText(container)).toContain(`תרגיל 1 מתוך ${questions.length}`);
+    expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull(); expect(button('בדיקה').disabled).toBe(true);
+    expect(queryVisible(container, '.relative-calculation')).toBeNull();
     click('חזרה ללימוד'); click(relativeTimePracticeTitles[mode]); click('חזרה לבית');
     expect(document.activeElement).toBe(button('כמה זמן עבר ונשאר?'));
   });
-  it.each(['elapsed', 'remaining', 'mixed'] as const)('leaves %s during a retry and reenters fresh', mode => {
+  it.each(['elapsed', 'remaining', 'mixed'] as const)('leaves %s during a retry and explicitly restarts on reentry', mode => {
     click('כמה זמן עבר ונשאר?'); click('הדוגמה הבאה'); click(relativeTimePracticeTitles[mode]);
     click('שעתיים ו־50 דקות'); click('בדיקה'); click('חזרה ללימוד');
-    expect(container.querySelector('h2')?.textContent).toContain('דוגמה 2 מתוך 12');
-    click(relativeTimePracticeTitles[mode]); expect(container.querySelector('[role="status"]')?.textContent).toBe('');
-    expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
+    expect(queryVisible(container, 'h2')?.textContent).toContain('דוגמה 2 מתוך 12');
+    click(relativeTimePracticeTitles[mode]); expect(queryVisible(container, '[role="status"]')?.textContent).toBe('');
+    expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
     click('חזרה לבית'); expect(document.activeElement).toBe(button('כמה זמן עבר ונשאר?'));
   });
 });

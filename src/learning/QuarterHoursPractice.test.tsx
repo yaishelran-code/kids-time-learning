@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { readLedger } from '../rewards/ledger';
 import { act, useState } from 'react';
@@ -13,14 +14,14 @@ let container: HTMLDivElement;
 let root: Root;
 beforeEach(() => { localStorage.clear(); container = document.createElement('div'); document.body.append(container); root = createRoot(container); act(() => root.render(<App />)); });
 afterEach(() => { act(() => root.unmount()); container.remove(); vi.restoreAllMocks(); });
-function button(label: string) { const b = [...container.querySelectorAll('button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
-function click(label: string) { act(() => button(label).click()); }
-function key(key: string) { act(() => container.querySelector('[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))); }
+function button(label: string) { const b = [...allVisible(container, 'button')].find(el => el.textContent === label); expect(b).toBeDefined(); return b!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
+function key(key: string) { act(() => queryVisible(container, '[role="slider"]')!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))); }
 function hands(hour: number, minute: number) {
-  expect(container.querySelector('[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
-  expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
+  expect(queryVisible(container, '[data-hand="hour"]')?.getAttribute('transform')).toBe(`rotate(${hour % 12 * 30 + minute * .5} 150 150)`);
+  expect(queryVisible(container, '[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
 }
-const status = () => container.querySelector('[role="status"]')?.textContent;
+const status = () => queryVisible(container, '[role="status"]')?.textContent;
 function open(mode: QuarterPracticeMode) { click('לימוד רבע שעה'); click('הדוגמה הבאה'); click(quarterPracticeTitles[mode]); }
 
 describe('quarter-hour practice', () => {
@@ -37,21 +38,21 @@ describe('quarter-hour practice', () => {
     open(mode);
     const positions: number[] = [];
     for (const [index,target] of quarterExercises[mode].entries()) {
-      expect(container.textContent).toContain(`תרגיל ${index+1} מתוך ${quarterExercises[mode].length}`);
-      expect(document.activeElement).toBe(container.querySelector('h1'));
-      expect(container.querySelector('.digital-time')).toBeNull();
-      expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
+      expect(visibleText(container)).toContain(`תרגיל ${index+1} מתוך ${quarterExercises[mode].length}`);
+      expect(document.activeElement).toBe(queryVisible(container, 'h1'));
+      expect(queryVisible(container, '.digital-time')).toBeNull();
+      expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
       expect(status()).toBe('');
       if(target.kind === 'setting') {
-        expect(container.querySelector('.exercise-target bdi')?.textContent).toBe(formatTime(target));
-        expect(container.querySelector('.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
-        expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuetext')).not.toBe(`השעה ${formatTime(target)}`);
+        expect(queryVisible(container, '.exercise-target bdi')?.textContent).toBe(formatTime(target));
+        expect(queryVisible(container, '.exercise-target bdi')?.getAttribute('dir')).toBe('ltr');
+        expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-valuetext')).not.toBe(`השעה ${formatTime(target)}`);
         click('בדיקה'); expect(status()).toBe('כמעט! נסו שוב');
         key('ArrowRight'); hands(target.hour,target.minute); expect(status()).toBe('');
       } else {
-        hands(target.hour,target.minute); expect(container.querySelector('[role="slider"]')).toBeNull();
+        hands(target.hour,target.minute); expect(queryVisible(container, '[role="slider"]')).toBeNull();
         expect(button('בדיקה').disabled).toBe(true);
-        const choices = [...container.querySelectorAll('.reading-answers button')];
+        const choices = [...allVisible(container, '.reading-answers button')];
         const labels = choices.map(el => el.textContent!);
         expect(new Set(labels).size).toBe(3);
         expect(labels.filter(label => label === formatTime(target))).toHaveLength(1);
@@ -60,23 +61,23 @@ describe('quarter-hour practice', () => {
         click(labels.find(label => label !== formatTime(target))!);click('בדיקה');expect(status()).toBe('כמעט! נסו שוב');
         click(formatTime(target));expect(status()).toBe('');
       }
-      expect(container.textContent).not.toContain('התרגיל הבא');
+      expect(visibleText(container)).not.toContain('התרגיל הבא');
       click('בדיקה');expect(status()).toBe('כל הכבוד! קיבלת כוכב ו־10 נקודות');
       expect(document.activeElement).toBe(button('התרגיל הבא'));
-      expect(container.querySelector('[role="slider"]')).toBeNull();
-      expect([...container.querySelectorAll('.reading-answers button')].every(el => (el as HTMLButtonElement).disabled)).toBe(true);
-      expect(container.textContent).not.toContain('רבע לשמונה');
+      expect(queryVisible(container, '[role="slider"]')).toBeNull();
+      expect([...allVisible(container, '.reading-answers button')].every(el => (el as HTMLButtonElement).disabled)).toBe(true);
+      expect(visibleText(container)).not.toContain('רבע לשמונה');
       click('התרגיל הבא');
     }
     if(mode !== 'setting') expect(new Set(positions).size).toBe(3);
-    expect(container.querySelector('h1')?.textContent).toContain('סיימתם');
+    expect(queryVisible(container, 'h1')?.textContent).toContain('סיימתם');
     expect(readLedger().ledger.stars).toBe(quarterExercises[mode].length);
     expect(readLedger().ledger.runs[`quarter-${mode}`]!.awarded).toHaveLength(quarterExercises[mode].length);
-    expect(container.querySelector('.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * quarterExercises[mode].length} נקודות ו־${quarterExercises[mode].length} כוכבים.`);
-    expect(container.querySelector('h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'החצאים והרבעים');
-    expect(container.textContent).not.toContain('תרגיל 1 מתוך');
-    click('תרגלו שוב');expect(status()).toBe('');expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    expect(container.textContent).toContain(`תרגיל 1 מתוך ${quarterExercises[mode].length}`);
+    expect(queryVisible(container, '.reward-summary')?.textContent).toBe(`ברצף הזה צברת ${10 * quarterExercises[mode].length} נקודות ו־${quarterExercises[mode].length} כוכבים.`);
+    expect(queryVisible(container, 'h1')?.textContent).toContain(mode === 'setting' ? 'כיוון' : mode === 'reading' ? 'קריאת' : 'החצאים והרבעים');
+    expect(visibleText(container)).not.toContain('תרגיל 1 מתוך');
+    click('תרגלו שוב');expect(status()).toBe('');expect(queryVisible(container, '[aria-pressed="true"]')).toBeNull();
+    expect(visibleText(container)).toContain(`תרגיל 1 מתוך ${quarterExercises[mode].length}`);
     click('חזרה ללימוד');hands(7,15);
     expect(document.activeElement).toBe(button(quarterPracticeTitles[mode]));
     click(quarterPracticeTitles[mode]);expect(status()).toBe('');click('חזרה לבית');
@@ -88,18 +89,18 @@ describe('quarter-hour practice', () => {
     for(let i=0;i<48;i++) { hands(Math.floor(i/4)||12,i%4*15);key('ArrowRight'); }
     hands(12,0);key('ArrowLeft');hands(11,45);key('End');hands(11,45);
     key('Home');key('ArrowDown');hands(11,45);key('ArrowUp');hands(12,0);
-    expect(container.querySelector('[role="slider"]')?.getAttribute('aria-valuemax')).toBe('705');
+    expect(queryVisible(container, '[role="slider"]')?.getAttribute('aria-valuemax')).toBe('705');
     expect(timeFromMinutes(7)).toEqual({hour:12,minute:0});
     expect(timeFromMinutes(8,15)).toEqual({hour:12,minute:15});
   });
   it.each(['mouse','touch'])('snaps %s drags to quarters and tracks forward/reverse across twelve', pointerType => {
     function Clock() { const [time,setTime]=useState<ClockTime>({hour:12,minute:45}); return <AnalogClock {...time} minuteStep={15} onTimeChange={setTime} />; }
     act(() => root.render(<Clock />));
-    const svg=container.querySelector('svg')!;
+    const svg=queryVisible(container, 'svg')!;
     vi.spyOn(svg,'getBoundingClientRect').mockReturnValue({left:0,top:0,width:300,height:300} as DOMRect);
     Object.assign(svg,{setPointerCapture:vi.fn(),hasPointerCapture:()=>true,releasePointerCapture:vi.fn()});
     const dispatch=(el: Element,type:string,angle:number) => {const e=new Event(type,{bubbles:true,cancelable:true});Object.assign(e,{pointerId:1,isPrimary:true,button:0,pointerType,clientX:150+90*Math.sin(angle*Math.PI/180),clientY:150-90*Math.cos(angle*Math.PI/180)});act(()=>el.dispatchEvent(e));};
-    dispatch(container.querySelector('[role="slider"]')!,'pointerdown',270);
+    dispatch(queryVisible(container, '[role="slider"]')!,'pointerdown',270);
     dispatch(svg,'pointermove',310);hands(12,45);
     dispatch(svg,'pointermove',340);hands(1,0);
     dispatch(svg,'pointermove',0);hands(1,0);

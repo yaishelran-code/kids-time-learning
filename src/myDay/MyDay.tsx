@@ -18,16 +18,24 @@ export function MyDay({ onHome }: { onHome: () => void }) {
   const [period, setPeriod] = useState<PeriodId>('morning');
   const [error, setError] = useState('');
   const [original, setOriginal] = useState('');
-  const [leaving, setLeaving] = useState<'home'|'cancel'|'new'|null>(null);
+  type LeaveAction = {kind:'home'|'cancel'|'new'} | {kind:'edit'; activity:Activity} | {kind:'delete'; id:string};
+  const [leaving, setLeaving] = useState<LeaveAction|null>(null);
   const dirty = editing !== undefined && JSON.stringify([name,hour,minute,period]) !== original;
   useEffect(()=>{
     const before=(event:BeforeUnloadEvent)=>{if(dirty){event.preventDefault();event.returnValue='';}};
-    const back=(event:PopStateEvent)=>{if(dirty){event.stopImmediatePropagation();history.pushState({myDay:true},'');setLeaving('home');}else if(deleting){event.stopImmediatePropagation();setDeleting(null);}else onHome();};
+    const back=(event:PopStateEvent)=>{if(leaving){event.stopImmediatePropagation();setLeaving(null);return;}if(dirty){event.stopImmediatePropagation();history.pushState({myDay:true},'');setLeaving({kind:'home'});}else if(deleting){event.stopImmediatePropagation();setDeleting(null);}else onHome();};
     window.addEventListener('beforeunload',before);window.addEventListener('popstate',back,true);
     return()=>{window.removeEventListener('beforeunload',before);window.removeEventListener('popstate',back,true);};
-  },[dirty,deleting,onHome]);
-  function requestLeave(action:'home'|'cancel'|'new') { if(dirty)setLeaving(action);else leave(action); }
-  function leave(action:'home'|'cancel'|'new') { setLeaving(null); if(action==='home')onHome();else if(action==='cancel')closeForm();else start(); }
+  },[dirty,deleting,leaving,onHome]);
+  function requestLeave(action:LeaveAction) { if(dirty)setLeaving(action);else leave(action); }
+  function leave(action:LeaveAction) {
+    setLeaving(null);
+    if(action.kind==='home')onHome();
+    else if(action.kind==='cancel')closeForm();
+    else if(action.kind==='new')start();
+    else if(action.kind==='edit')start(action.activity);
+    else if(action.kind==='delete'){setEditing(undefined);setError('');setDeleting(action.id);}
+  }
 
   const heading = useRef<HTMLHeadingElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
@@ -61,7 +69,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
     {storageError && <section className="storage-message" role="alert"><p>{storageError}</p>
       {saveFailed && <button type="button" className="secondary-button" onClick={() => { const saved = saveActivities(activities); setSaveFailed(!saved); setStorageError(saved ? '' : 'עדיין לא הצלחנו לשמור. השינויים נשארים כאן עד שתעזבו או תרעננו.'); }}>נסו לשמור שוב</button>}
     </section>}
-    <button ref={addButton} type="button" className="start-button" onClick={() => requestLeave('new')}>הוספת פעילות</button>
+    <button ref={addButton} type="button" className="start-button" onClick={() => requestLeave({kind:'new'})}>הוספת פעילות</button>
     {editing !== undefined && <form className="clock-card activity-form" onSubmit={event => {
       event.preventDefault();
       if (!name.trim()) { setError('כתבו שם לפעילות, למשל משחק עם חברים.'); nameInput.current?.focus(); return; }
@@ -79,7 +87,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
       <label>חלק ביום<select aria-label="חלק ביום" value={period} onChange={event => { setPeriod(event.target.value as PeriodId); setError(''); }}>{dayPeriods.map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
       <p className="digital-time" dir="ltr">{formatTime({ hour, minute })}</p>
       {error && <p role="alert">{error}</p>}
-      <div className="lesson-controls"><button className="start-button" type="submit">שמירת פעילות</button><button className="secondary-button" type="button" onClick={() => requestLeave('cancel')}>ביטול</button></div>
+      <div className="lesson-controls"><button className="start-button" type="submit">שמירת פעילות</button><button className="secondary-button" type="button" onClick={() => requestLeave({kind:'cancel'})}>ביטול</button></div>
     </form>}
     {pendingDelete && <section className="clock-card" role="alertdialog" aria-labelledby="delete-heading" aria-describedby="delete-description">
       <h2 id="delete-heading">למחוק את הפעילות?</h2><p id="delete-description">{pendingDelete.name} — המחיקה תסיר אותה מהיום שלי.</p>
@@ -92,11 +100,11 @@ export function MyDay({ onHome }: { onHome: () => void }) {
         return <li key={item.id} className="clock-card" aria-label={item.name}>
           <h2>{item.name}</h2><AnalogClock {...time} timeDescription={`${item.name}: ${formatTime(time)} ${context.context}`} />
           <p className="activity-time"><bdi className="digital-time" dir="ltr">{formatTime(time)}</bdi> <span>{context.context}</span></p>
-          <div className="lesson-controls"><button className="secondary-button" type="button" aria-label={`עריכת ${item.name}`} onClick={() => start(item)}>עריכה</button>
-            <button ref={element => { deleteButtons.current[item.id] = element; }} className="secondary-button" type="button" aria-label={`מחיקת ${item.name}`} onClick={() => { setEditing(undefined); setDeleting(item.id); }}>מחיקה</button></div>
+          <div className="lesson-controls"><button className="secondary-button" type="button" aria-label={`עריכת ${item.name}`} onClick={() => requestLeave({kind:'edit',activity:item})}>עריכה</button>
+            <button ref={element => { deleteButtons.current[item.id] = element; }} className="secondary-button" type="button" aria-label={`מחיקת ${item.name}`} onClick={() => requestLeave({kind:'delete',id:item.id})}>מחיקה</button></div>
         </li>;
       })}</ol>}
-    <button className="secondary-button home-button" type="button" onClick={() => requestLeave('home')}>חזרה לבית</button>
+    <button className="secondary-button home-button" type="button" onClick={() => requestLeave({kind:'home'})}>חזרה לבית</button>
     {leaving && <ConfirmDialog onCancel={()=>setLeaving(null)}><h2>יש שינויים שלא נשמרו</h2><p>לעזוב בלי לשמור את השינויים בפעילות?</p><button className="start-button" type="button" onClick={()=>leave(leaving)}>לעזוב בלי לשמור</button><button className="secondary-button" type="button" onClick={()=>setLeaving(null)}>להישאר ולערוך</button></ConfirmDialog>}
   </main>;
 }

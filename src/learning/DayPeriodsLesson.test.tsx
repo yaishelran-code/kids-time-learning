@@ -1,3 +1,4 @@
+import { allVisible, queryVisible, visibleText } from '../test/visible';
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -13,8 +14,8 @@ beforeEach(() => {
   root = createRoot(container); act(() => root.render(<App />));
 });
 afterEach(() => { act(() => root.unmount()); container.remove(); });
-function button(label: string) { return [...container.querySelectorAll('button')].find(item => item.textContent === label)!; }
-function click(label: string) { act(() => button(label).click()); }
+function button(label: string) { return [...allVisible(container, 'button')].find(item => item.textContent === label)!; }
+function click(label: string) { act(() => button(label).click()); if (label.startsWith('תרגול') || label.startsWith('נתרגל')) { const restart = allVisible<HTMLButtonElement>(container, 'button').find(b=>b.textContent==='התחלה מחדש — רצף תגמולים חדש' || b.textContent==='תרגלו שוב'); if(restart)act(()=>restart.click()); } }
 
 describe('day-period classification', () => {
   it.each([
@@ -51,13 +52,13 @@ describe('parts-of-day lesson', () => {
   it('shows all ten specified examples with exact clocks, context, accessible names and navigation', () => {
     click('לימוד חלקי היום');
     expect(dayExamples).toHaveLength(10);
-    expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
+    expect(queryVisible(container, 'main')?.getAttribute('dir')).toBe('rtl');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
-    expect(container.textContent).toContain('אצל משפחות שונות עושים דברים בשעות שונות');
+    expect(visibleText(container)).toContain('אצל משפחות שונות עושים דברים בשעות שונות');
     for (let i = 0; i < fixtures.length; i++) {
       const [time, name, context, activity, hourAngle, minuteAngle, minutes] = fixtures[i];
-      const card = container.querySelector('.day-example')!;
+      const card = queryVisible(container, '.day-example')!;
       expect(dayExamples[i].minutes).toBe(minutes);
       expect(card.querySelector('h2')?.textContent).toBe(`דוגמה ${i + 1} מתוך 10`);
       expect(document.activeElement).toBe(card.querySelector('h2'));
@@ -70,45 +71,45 @@ describe('parts-of-day lesson', () => {
       expect(card.querySelector('svg title')?.textContent).toBe(`${time} ${context}`);
       expect(card.querySelector('svg')?.getAttribute('role')).toBe('img');
       expect(hands(card)).toEqual([`rotate(${hourAngle} 150 150)`, minuteAngle ? `rotate(${minuteAngle} 150 150)` : null]);
-      expect(container.querySelector('.day-sequence [aria-current="step"]')?.textContent).toContain(name);
-      for (const digital of container.querySelectorAll('bdi')) expect(digital.textContent).toMatch(/^(?:[1-9]|1[0-2]):[0-5]\d$/);
+      expect(queryVisible(container, '.day-sequence [aria-current="step"]')?.textContent).toContain(name);
+      for (const digital of allVisible(container, 'bdi')) expect(digital.textContent).toMatch(/^(?:[1-9]|1[0-2]):[0-5]\d$/);
       if (i < 9) click('הדוגמה הבאה');
     }
-    expect(container.querySelector('.day-story')?.textContent).toContain('אחרי חצות');
-    expect(container.querySelector('.day-story')?.textContent).toContain('הבוקר של יום חדש');
+    expect(queryVisible(container, '.day-story')?.textContent).toContain('אחרי חצות');
+    expect(queryVisible(container, '.day-story')?.textContent).toContain('הבוקר של יום חדש');
     expect(button('הדוגמה הבאה').disabled).toBe(true);
-    click('הדוגמה הבאה'); expect(container.querySelector('.day-example h2')?.textContent).toBe('דוגמה 10 מתוך 10');
+    click('הדוגמה הבאה'); expect(queryVisible(container, '.day-example h2')?.textContent).toBe('דוגמה 10 מתוך 10');
     for (let i = 8; i >= 0; i--) {
       click('הדוגמה הקודמת');
-      expect(container.querySelector('.day-example .digital-time')?.textContent).toBe(fixtures[i][0]);
-      expect(document.activeElement).toBe(container.querySelector('.day-example h2'));
+      expect(queryVisible(container, '.day-example .digital-time')?.textContent).toBe(fixtures[i][0]);
+      expect(document.activeElement).toBe(queryVisible(container, '.day-example h2'));
     }
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
-    expect(container.querySelector('[role="slider"]')).toBeNull();
-    expect([...container.querySelectorAll('button')].map(item => item.textContent)).toEqual(['הדוגמה הקודמת', 'הדוגמה הבאה',
+    expect(queryVisible(container, '[role="slider"]')).toBeNull();
+    expect([...allVisible(container, 'button')].map(item => item.textContent)).toEqual(['הדוגמה הקודמת', 'הדוגמה הבאה',
       'תרגול זיהוי חלק היום', 'תרגול אותה שעה, הקשר שונה', 'תרגול משולב — חלקי היום', 'חזרה לבית']);
     click('חזרה לבית');
-    expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
+    expect(queryVisible(container, 'h1')?.textContent).toBe('לומדים את השעה');
     expect(document.activeElement).toBe(button('לימוד חלקי היום'));
     for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'קפיצות של 5 דקות', 'צעדים של דקה אחת', 'כמה זמן עבר ונשאר?']) expect(button(entry)).toBeDefined();
-    click('לימוד חלקי היום'); expect(container.querySelector('.day-example h2')?.textContent).toBe('דוגמה 1 מתוך 10');
+    click('לימוד חלקי היום'); expect(queryVisible(container, '.day-example h2')?.textContent).toBe('דוגמה 1 מתוך 10');
   });
 
   it('orders five labeled symbols and arrows, and teaches the next morning', () => {
     click('לימוד חלקי היום');
-    const items = [...container.querySelectorAll('.day-sequence li')];
+    const items = [...allVisible(container, '.day-sequence li')];
     expect(items).toHaveLength(5);
     expect(items.map(item => item.childNodes[1].textContent)).toEqual(['בוקר', 'צהריים', 'אחר הצהריים', 'ערב', 'לילה']);
     expect(new Set(items.map(item => item.querySelector('span')?.textContent)).size).toBe(5);
-    expect(container.querySelectorAll('.day-sequence-arrow')).toHaveLength(4);
-    expect([...container.querySelectorAll('.day-sequence-arrow')].every(item => item.textContent === '↓')).toBe(true);
-    expect(container.textContent).toContain('מתקדמים מלמעלה למטה לפי החצים');
-    expect(container.textContent).toContain('אחרי הלילה מגיע הבוקר של יום חדש');
+    expect(allVisible(container, '.day-sequence-arrow')).toHaveLength(4);
+    expect([...allVisible(container, '.day-sequence-arrow')].every(item => item.textContent === '↓')).toBe(true);
+    expect(visibleText(container)).toContain('מתקדמים מלמעלה למטה לפי החצים');
+    expect(visibleText(container)).toContain('אחרי הלילה מגיע הבוקר של יום חדש');
   });
 
   it('compares both identical hand pairs with different periods, stories, activities and symbols', () => {
     click('לימוד חלקי היום');
-    const pairs = [...container.querySelectorAll('.day-comparison')];
+    const pairs = [...allVisible(container, '.day-comparison')];
     expect(pairs).toHaveLength(2);
     for (const [i, pair] of pairs.entries()) {
       const figures = [...pair.querySelectorAll('figure')];
@@ -121,6 +122,6 @@ describe('parts-of-day lesson', () => {
       const stories = [...pair.querySelectorAll('.day-comparison-grid > div > p')];
       expect(stories[0].textContent).not.toBe(stories[1].textContent);
     }
-    expect(container.textContent).toContain('השעון לבדו לא אומר אם זו שעה בבוקר או בערב. צריך לדעת גם את חלק היום');
+    expect(visibleText(container)).toContain('השעון לבדו לא אומר אם זו שעה בבוקר או בערב. צריך לדעת גם את חלק היום');
   });
 });

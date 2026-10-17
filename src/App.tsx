@@ -1,4 +1,5 @@
-import { FlowExperience } from './flow/FlowExperience';
+import { LessonContext } from './flow/context';
+import { type FlowCommand, type FlowTopic, FlowExperience } from './flow/FlowExperience';
 import { ParentArea, ParentHelpProvider } from './parent/ParentHelp';
 import { Collection, RewardTotals, RewardsProvider } from './rewards/Rewards';
 import { Baseline } from './baseline/Baseline';
@@ -18,11 +19,16 @@ import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 export function App() { return <ParentHelpProvider><RewardsProvider><AppScreens /></RewardsProvider></ParentHelpProvider>; }
 function AppScreens() {
   const [flowVisible, setFlowVisible] = useState(false);
-  const [flowCommand, setFlowCommand] = useState<{id:number; resume?:boolean;topic?:'structure'|'full'|'half'|'quarter'|'five'}>({id:0});
+  const [flowCommand, setFlowCommand] = useState<FlowCommand>({id:0});
   const [hasSession, setHasSession] = useState(false);
   const flowButton = useRef<HTMLButtonElement>(null);
-  function openFlow(resume = false) { setFlowCommand(c=>({id:c.id+1,resume})); setFlowVisible(true); }
-  function flowHome() { setBaseline(false); setBaselineLesson(null); setFlowVisible(false); setTimeout(()=>flowButton.current?.focus(),0); }
+  function openFlow(resume = false) { homeFocus.current=flowButton; setFlowCommand(c=>({id:c.id+1,resume})); setFlowVisible(true); }
+  const homeFocus = useRef<{current:HTMLButtonElement|null} | null>(null);
+  const previousFlow = useRef(false);
+  const lastLessonAction = useRef<HTMLButtonElement|null>(null);
+  function flowHome() {
+    setBaseline(false);setBaselineLesson(null);setStructure(false);setDayPeriods(false);setRelativeTime(false);setExactMinutes(false);setMinutes(false);setQuarterHours(false);setHalfHours(false);setLearning(false);setFlowVisible(false);
+  }
 
   const [parent, setParent] = useState(false);
   const parentButton = useRef<HTMLButtonElement>(null);
@@ -121,6 +127,16 @@ function AppScreens() {
     };
     window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);
   },[legacyPage,flowVisible]);
+  useEffect(()=>{
+    if(previousFlow.current && !flowVisible){if(legacyPage)lastLessonAction.current?.focus();else {const target=(homeFocus.current ?? flowButton).current;const details=target?.closest('details');if(details)details.open=true;target?.focus();}}
+    previousFlow.current=flowVisible;
+  },[flowVisible,legacyPage]);
+  function startFromLesson(mode:string) {
+    const topic=legacyPage as FlowTopic;
+    homeFocus.current=({full:startButton,half:halfHoursButton,quarter:quarterHoursButton,five:minutesButton,exact:exactMinutesButton,relative:relativeTimeButton,day:dayPeriodsButton,structure:structureButton}[topic]);
+    setFlowCommand(c=>({id:c.id+1,topic,mode,fromLesson:true}));setFlowVisible(true);
+  }
+  function returnToLesson(topic:FlowTopic){if(legacyPage===topic){setFlowVisible(false);return true;}return false;}
   function renderPage() {
   if (parent) return <ParentArea onHome={() => setParent(false)} />;
   if (collection) return <Collection onHome={() => setCollection(false)} />;
@@ -175,5 +191,5 @@ function AppScreens() {
     </main>
   );
   }
-  return <><div hidden={flowVisible}>{renderPage()}</div><FlowExperience active={flowVisible} command={flowCommand} onHome={flowHome} onSession={setHasSession}/></>;
+  return <><LessonContext.Provider value={startFromLesson}><div hidden={flowVisible} onClickCapture={event=>{const button=(event.target as Element).closest<HTMLButtonElement>('button');if(button)lastLessonAction.current=button;}}>{renderPage()}</div></LessonContext.Provider><FlowExperience active={flowVisible} command={flowCommand} onHome={flowHome} onSession={setHasSession} onLessonReturn={returnToLesson}/></>;
 }
