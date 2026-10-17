@@ -1,3 +1,4 @@
+import { FlowExperience } from './flow/FlowExperience';
 import { ParentArea, ParentHelpProvider } from './parent/ParentHelp';
 import { Collection, RewardTotals, RewardsProvider } from './rewards/Rewards';
 import { Baseline } from './baseline/Baseline';
@@ -16,6 +17,13 @@ import { DayPeriodsLesson } from './learning/DayPeriodsLesson';
 
 export function App() { return <ParentHelpProvider><RewardsProvider><AppScreens /></RewardsProvider></ParentHelpProvider>; }
 function AppScreens() {
+  const [flowVisible, setFlowVisible] = useState(false);
+  const [flowCommand, setFlowCommand] = useState<{id:number; resume?:boolean;topic?:'structure'|'full'|'half'|'quarter'|'five'}>({id:0});
+  const [hasSession, setHasSession] = useState(false);
+  const flowButton = useRef<HTMLButtonElement>(null);
+  function openFlow(resume = false) { setFlowCommand(c=>({id:c.id+1,resume})); setFlowVisible(true); }
+  function flowHome() { setBaseline(false); setBaselineLesson(null); setFlowVisible(false); setTimeout(()=>flowButton.current?.focus(),0); }
+
   const [parent, setParent] = useState(false);
   const parentButton = useRef<HTMLButtonElement>(null);
   const wasParent = useRef(false);
@@ -101,6 +109,19 @@ function AppScreens() {
     if (wasLearning.current && !learning) startButton.current?.focus();
     wasLearning.current = learning;
   }, [learning]);
+  const legacyPage = parent?'parent':collection?'collection':baseline?'baseline':structure?'structure':myDay?'myDay':dayPeriods?'day':relativeTime?'relative':exactMinutes?'exact':minutes?'five':quarterHours?'quarter':halfHours?'half':learning?'full':null;
+  useEffect(()=>{
+    if(legacyPage && !flowVisible) history.pushState({legacyPage},'');
+  },[legacyPage,flowVisible]);
+  useEffect(()=>{
+    const back=(event:PopStateEvent)=>{
+      if(!legacyPage && event.state?.flow){setFlowVisible(true);return;}
+      if(flowVisible || !legacyPage || legacyPage==='parent' || legacyPage==='myDay')return;
+      setCollection(false);setBaseline(false);setStructure(false);setDayPeriods(false);setRelativeTime(false);setExactMinutes(false);setMinutes(false);setQuarterHours(false);setHalfHours(false);setLearning(false);
+    };
+    window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);
+  },[legacyPage,flowVisible]);
+  function renderPage() {
   if (parent) return <ParentArea onHome={() => setParent(false)} />;
   if (collection) return <Collection onHome={() => setCollection(false)} />;
   if (baseline) {
@@ -110,7 +131,7 @@ function AppScreens() {
     if (baselineLesson === 'halfHours') return <HalfHoursLesson onHome={onHome} />;
     if (baselineLesson === 'quarterHours') return <QuarterHoursLesson onHome={onHome} />;
     if (baselineLesson === 'fiveMinutes') return <FiveMinutesLesson onHome={onHome} />;
-    return <Baseline onHome={onHome} onLesson={setBaselineLesson} />;
+    return <Baseline onHome={onHome} onLesson={point=>{setFlowCommand(c=>({id:c.id+1,topic:({structure:'structure',fullHours:'full',halfHours:'half',quarterHours:'quarter',fiveMinutes:'five'} as const)[point]}));setFlowVisible(true);}} />;
   }
   if (structure) return <ClockStructureLesson onHome={() => setStructure(false)} onFullHours={() => { setStructure(false); setLearning(true); }} />;
   if (myDay) return <MyDay onHome={() => setMyDay(false)} />;
@@ -134,19 +155,25 @@ function AppScreens() {
         <p className="digital-time" dir="ltr" aria-label="השעה שבע">7:00</p>
         <p className="clock-caption">השעה שבע</p>
       </section>
+      <button ref={flowButton} className="start-button exercise-entry" type="button" onClick={()=>openFlow()}>בואו נתרגל</button>
+      {hasSession && <button className="secondary-button exercise-entry" type="button" onClick={()=>openFlow(true)}>המשך התרגול</button>}
       <RewardTotals />
       <button ref={collectionButton} className="secondary-button exercise-entry" type="button" onClick={() => setCollection(true)}>האוסף שלי</button>
       <button ref={baselineButton} className="secondary-button exercise-entry" type="button" onClick={() => setBaseline(true)}>מאיפה מתחילים?</button>
+      <details className="learn-topics"><summary>לימוד לפי נושא</summary>
       <button ref={structureButton} className="secondary-button exercise-entry" type="button" onClick={() => setStructure(true)}>מבנה השעון</button>
       <button ref={startButton} className="start-button" type="button" onClick={() => setLearning(true)}>התחל ללמוד</button>
       <button ref={halfHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setHalfHours(true)}>נלמד חצי שעה</button>
       <button ref={quarterHoursButton} className="secondary-button exercise-entry" type="button" onClick={() => setQuarterHours(true)}>לימוד רבע שעה</button>
-      <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)}>לימוד דקות</button>
-      <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)}>לימוד דקות מדויקות</button>
+      <button ref={minutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setMinutes(true)} aria-describedby="five-description">קפיצות של 5 דקות</button><p id="five-description">בין מספר למספר בשעון עוברות 5 דקות</p>
+      <button ref={exactMinutesButton} className="secondary-button exercise-entry" type="button" onClick={() => setExactMinutes(true)} aria-describedby="exact-description">צעדים של דקה אחת</button><p id="exact-description">בין שני סימונים קטנים בשעון עוברת דקה אחת</p>
       <button ref={relativeTimeButton} className="secondary-button exercise-entry" type="button" onClick={() => setRelativeTime(true)}>כמה זמן עבר ונשאר?</button>
       <button ref={dayPeriodsButton} className="secondary-button exercise-entry" type="button" onClick={() => setDayPeriods(true)}>לימוד חלקי היום</button>
+      </details>
       <button ref={myDayButton} className="secondary-button exercise-entry" type="button" onClick={() => setMyDay(true)}>היום שלי</button>
       <button ref={parentButton} type="button" className="secondary-button exercise-entry" onClick={() => setParent(true)}>אזור הורה</button>
     </main>
   );
+  }
+  return <><div hidden={flowVisible}>{renderPage()}</div><FlowExperience active={flowVisible} command={flowCommand} onHome={flowHome} onSession={setHasSession}/></>;
 }

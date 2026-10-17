@@ -21,7 +21,7 @@ function hands(element: Element, hour: number, minute: number) {
 }
 describe('five-minute lesson', () => {
   it('synchronizes all 15 examples, explanations, accessible descriptions and navigation boundaries', () => {
-    click('לימוד דקות');
+    click('קפיצות של 5 דקות');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
     for (let index = 0; index < times.length; index++) {
@@ -50,11 +50,11 @@ describe('five-minute lesson', () => {
     for (let index = times.length - 2; index >= 0; index--) { click('הדוגמה הקודמת'); hands(container.querySelector('.clock-card')!, ...times[index] as [number, number]); }
     expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
     expect(container.textContent).not.toContain('לתשע');
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות'));
-    click('לימוד דקות'); hands(container.querySelector('.clock-card')!, 8, 0);
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('קפיצות של 5 דקות'));
+    click('קפיצות של 5 דקות'); hands(container.querySelector('.clock-card')!, 8, 0);
   });
   it('toggles minute labels without replacing hour numbers and teaches every mapping', () => {
-    click('לימוד דקות');
+    click('קפיצות של 5 דקות');
     expect(container.querySelectorAll('[data-minute-label]')).toHaveLength(0);
     click('סימוני דקות ליד המספרים');
     expect(button('סימוני דקות ליד המספרים').getAttribute('aria-pressed')).toBe('true');
@@ -68,7 +68,7 @@ describe('five-minute lesson', () => {
     click('סימוני דקות ליד המספרים'); expect(container.querySelectorAll('[data-minute-label]')).toHaveLength(0);
   });
   it('compares 8:05, 8:10 and 8:15 in order', () => {
-    click('לימוד דקות');
+    click('קפיצות של 5 דקות');
     const figures = [...container.querySelectorAll('.minutes-comparison-grid figure')];
     expect(figures).toHaveLength(3);
     figures.forEach((figure, index) => { hands(figure, 8, (index + 1) * 5); expect(figure.querySelector('bdi')?.textContent).toBe(`8:${String((index + 1) * 5).padStart(2, '0')}`); });

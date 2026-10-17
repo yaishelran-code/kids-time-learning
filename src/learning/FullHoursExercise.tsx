@@ -1,3 +1,4 @@
+import { PracticeTools } from '../flow/PracticeTools';
 import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
@@ -29,10 +30,11 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
 
   function reset() { reward.restart(); setIndex(0); setHour(1); setFeedback('idle'); }
 
-  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome}><PracticeTools meta={{ topic, index, completed: false, hour: target.hour, minute: 0 }} /></PracticePause>;
 
   if (completed) return (
     <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, hour: target.hour, minute: 0 }} />
       <header className="clock-card">
         <h1 ref={heading} tabIndex={-1}>כל הכבוד! סיימתם את התרגול 🎉</h1>
       </header>
@@ -40,15 +42,18 @@ export function FullHoursExercise({ onLesson, onHome }: { onLesson: () => void; 
       <nav className="lesson-controls" aria-label="סיום התרגול">
         <button className="start-button" type="button" onClick={reset}>תרגלו שוב</button>
         <button className="secondary-button" type="button" onClick={onLesson}>חזרה ללימוד</button>
+        <button className="secondary-button" type="button" onClick={onHome}>חזרה לבית</button>
       </nav>
     </main>
   );
 
   return (
     <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, hour: target.hour, minute: 0 }} />
       <header>
         <p className="eyebrow">עכשיו תורכם להזיז את המחוג</p>
         <h1 ref={heading} tabIndex={-1}>מכוונים את השעון</h1>
+        <p>תרגיל {index + 1} מתוך {exercises.length}</p>
         <p className="exercise-target">כוונו את השעון לשעה <bdi dir="ltr">{target.hour}:00</bdi>{target.period && ` ${target.period}`}</p>
         <p>גררו את המחוג הקצר. המחוג הארוך נשאר על 12.</p>
       </header>

@@ -1,3 +1,4 @@
+import { PracticeTools } from '../flow/PracticeTools';
 import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
@@ -58,8 +59,9 @@ export function RelativeTimePractice({ mode, onLesson, onHome }: { mode: Relativ
   const hours = Math.floor(total / 60), minutes = total % 60;
   const anchor = timeFromMinutes(question.start.hour % 12 * 60 + question.start.minute + hours * 60, 5);
   function clear() { setSelected(null); setFeedback('idle'); }
-  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome}><PracticeTools meta={{ topic, index, completed: false, kind: question.kind, stage: question.stage }} /></PracticePause>;
   return <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, kind: question.kind, stage: question.stage }} />
     <header><h1 ref={heading} tabIndex={-1}>{completed ? `כל הכבוד! סיימתם ${relativeTimePracticeTitles[mode]} 🎉` : relativeTimePracticeTitles[mode]}</h1>
       {!completed && <><p>תרגיל {index + 1} מתוך {questions.length}</p><p className="relative-question">{question.story}</p></>}
     </header>

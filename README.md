@@ -593,3 +593,27 @@ verification; it is not a production deployment server.
 
 Personal activities, completed baseline recommendations and practice rewards are saved in local browser storage; no backend, credentials,
 external fonts, or third-party services are required.
+
+## Child-trial flow proposal and implementation
+
+The pending child-trial PR adds **בואו נתרגל** as the primary entry: topic,
+practice-now/learn-first, mode, practice and clear continuation. All twenty modes
+have contextual help in a native modal dialog that leaves the question mounted;
+help/expanded hand exploration never grants rewards, records an attempt or clears
+a parent pause. The central flow retains one active practice through Home and
+requires confirmation before replacing unfinished practice. Successful parent
+reward reset invalidates that suspended practice; failed reset does not.
+
+**מבנה השעון** now includes free exploration with independently draggable hour
+and minute hands, one synchronized time, visible digital time, keyboard controls
+and an explicit demo-clock reset. Existing practice snapping rules stay unchanged.
+Minute topic names are **קפיצות של 5 דקות** and **צעדים של דקה אחת**, including the
+Baseline destination label. Lessons show explicit endings and replay controls.
+
+See [the Hebrew review, diagrams, three verification rounds and known gaps](docs/reviews/child-trial-flow.md).
+The legacy learn-first links remain under **לימוד לפי נושא**; central-flow resume
+and next-topic routing do not yet cover practice started through those legacy
+links. Unsaved My Day guards cover Home/cancel/new-form but not every direct
+edit/delete switch. These are explicitly open #50 acceptance gaps, not verified
+completed behavior. This PR must not auto-close #50 or deploy before owner review.
+Physical devices, non-Chromium engines and screen readers remain unverified.

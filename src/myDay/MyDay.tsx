@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '../flow/ConfirmDialog';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime, timeFromMinutes } from '../learning/clockTime';
@@ -16,6 +17,18 @@ export function MyDay({ onHome }: { onHome: () => void }) {
   const [minute, setMinute] = useState(0);
   const [period, setPeriod] = useState<PeriodId>('morning');
   const [error, setError] = useState('');
+  const [original, setOriginal] = useState('');
+  const [leaving, setLeaving] = useState<'home'|'cancel'|'new'|null>(null);
+  const dirty = editing !== undefined && JSON.stringify([name,hour,minute,period]) !== original;
+  useEffect(()=>{
+    const before=(event:BeforeUnloadEvent)=>{if(dirty){event.preventDefault();event.returnValue='';}};
+    const back=(event:PopStateEvent)=>{if(dirty){event.stopImmediatePropagation();history.pushState({myDay:true},'');setLeaving('home');}else if(deleting){event.stopImmediatePropagation();setDeleting(null);}else onHome();};
+    window.addEventListener('beforeunload',before);window.addEventListener('popstate',back,true);
+    return()=>{window.removeEventListener('beforeunload',before);window.removeEventListener('popstate',back,true);};
+  },[dirty,deleting,onHome]);
+  function requestLeave(action:'home'|'cancel'|'new') { if(dirty)setLeaving(action);else leave(action); }
+  function leave(action:'home'|'cancel'|'new') { setLeaving(null); if(action==='home')onHome();else if(action==='cancel')closeForm();else start(); }
+
   const heading = useRef<HTMLHeadingElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const addButton = useRef<HTMLButtonElement>(null);
@@ -35,6 +48,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
     setName(activity?.name ?? '');
     const time = timeFromMinutes(activity?.minutes ?? 420, 1);
     setHour(time.hour); setMinute(time.minute); setPeriod(dayPeriodAt(activity?.minutes ?? 420).id);
+    setOriginal(JSON.stringify([activity?.name ?? '', time.hour,time.minute,dayPeriodAt(activity?.minutes ?? 420).id]));
   }
   function closeForm() { setEditing(undefined); setError(''); addButton.current?.focus(); }
   const pendingDelete = activities.find(item => item.id === deleting);
@@ -47,7 +61,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
     {storageError && <section className="storage-message" role="alert"><p>{storageError}</p>
       {saveFailed && <button type="button" className="secondary-button" onClick={() => { const saved = saveActivities(activities); setSaveFailed(!saved); setStorageError(saved ? '' : 'עדיין לא הצלחנו לשמור. השינויים נשארים כאן עד שתעזבו או תרעננו.'); }}>נסו לשמור שוב</button>}
     </section>}
-    <button ref={addButton} type="button" className="start-button" onClick={() => start()}>הוספת פעילות</button>
+    <button ref={addButton} type="button" className="start-button" onClick={() => requestLeave('new')}>הוספת פעילות</button>
     {editing !== undefined && <form className="clock-card activity-form" onSubmit={event => {
       event.preventDefault();
       if (!name.trim()) { setError('כתבו שם לפעילות, למשל משחק עם חברים.'); nameInput.current?.focus(); return; }
@@ -65,7 +79,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
       <label>חלק ביום<select aria-label="חלק ביום" value={period} onChange={event => { setPeriod(event.target.value as PeriodId); setError(''); }}>{dayPeriods.map(value => <option key={value.id} value={value.id}>{value.name}</option>)}</select></label>
       <p className="digital-time" dir="ltr">{formatTime({ hour, minute })}</p>
       {error && <p role="alert">{error}</p>}
-      <div className="lesson-controls"><button className="start-button" type="submit">שמירת פעילות</button><button className="secondary-button" type="button" onClick={closeForm}>ביטול</button></div>
+      <div className="lesson-controls"><button className="start-button" type="submit">שמירת פעילות</button><button className="secondary-button" type="button" onClick={() => requestLeave('cancel')}>ביטול</button></div>
     </form>}
     {pendingDelete && <section className="clock-card" role="alertdialog" aria-labelledby="delete-heading" aria-describedby="delete-description">
       <h2 id="delete-heading">למחוק את הפעילות?</h2><p id="delete-description">{pendingDelete.name} — המחיקה תסיר אותה מהיום שלי.</p>
@@ -82,6 +96,7 @@ export function MyDay({ onHome }: { onHome: () => void }) {
             <button ref={element => { deleteButtons.current[item.id] = element; }} className="secondary-button" type="button" aria-label={`מחיקת ${item.name}`} onClick={() => { setEditing(undefined); setDeleting(item.id); }}>מחיקה</button></div>
         </li>;
       })}</ol>}
-    <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
+    <button className="secondary-button home-button" type="button" onClick={() => requestLeave('home')}>חזרה לבית</button>
+    {leaving && <ConfirmDialog onCancel={()=>setLeaving(null)}><h2>יש שינויים שלא נשמרו</h2><p>לעזוב בלי לשמור את השינויים בפעילות?</p><button className="start-button" type="button" onClick={()=>leave(leaving)}>לעזוב בלי לשמור</button><button className="secondary-button" type="button" onClick={()=>setLeaving(null)}>להישאר ולערוך</button></ConfirmDialog>}
   </main>;
 }

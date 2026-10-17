@@ -59,7 +59,7 @@ describe('My Day', () => {
   it('explains invalid names and period combinations, and supports cancelling edits', () => {
     click('היום שלי'); click('הוספת פעילות'); field('שם הפעילות','  '); click('שמירת פעילות'); expect(container.querySelector('[role="alert"]')?.textContent).toContain('כתבו שם');
     field('שם הפעילות','פעילות'); field('חלק ביום','noon'); click('שמירת פעילות'); expect(container.querySelector('[role="alert"]')?.textContent).toContain('לא מתאימים'); expect(names()).toHaveLength(0);
-    field('חלק ביום','morning'); click('שמירת פעילות'); click('עריכת פעילות'); field('שם הפעילות','לא נשמר'); click('ביטול'); expect(names()).toEqual(['פעילות']);
+    field('חלק ביום','morning'); click('שמירת פעילות'); click('עריכת פעילות'); field('שם הפעילות','לא נשמר'); click('ביטול'); click('לעזוב בלי לשמור'); expect(names()).toEqual(['פעילות']);
   });
   it('keeps in-memory changes on write failure and lets saving recover', () => {
     click('היום שלי'); const spy=vi.spyOn(Storage.prototype,'setItem').mockImplementation(() => {throw new Error('quota');});

@@ -21,7 +21,7 @@ function hands(hour: number, minute: number) {
   expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
 }
 const status = () => container.querySelector('[role="status"]')?.textContent;
-function open(mode: FiveMinutesPracticeMode) { click('לימוד דקות'); click('הדוגמה הבאה'); click(fiveMinutesPracticeTitles[mode]); }
+function open(mode: FiveMinutesPracticeMode) { click('קפיצות של 5 דקות'); click('הדוגמה הבאה'); click(fiveMinutesPracticeTitles[mode]); }
 
 describe('five-minute practice', () => {
   it('covers all new minute values, twelve, other hours and mixed practice in both kinds', () => {
@@ -124,7 +124,7 @@ describe('five-minute practice', () => {
     click('חזרה ללימוד');hands(8,5);
     expect(document.activeElement).toBe(button(fiveMinutesPracticeTitles[mode]));
     click(fiveMinutesPracticeTitles[mode]);expect(status()).toBe('');click('חזרה לבית');
-    expect(document.activeElement).toBe(button('לימוד דקות'));
+    expect(document.activeElement).toBe(button('קפיצות של 5 דקות'));
   });
   it('selects all 144 five-minute times and wraps in both directions without changing default snapping', () => {
     open('setting');
@@ -185,8 +185,8 @@ describe('five-minute practice', () => {
     expect(document.activeElement).toBe(button(fiveMinutesPracticeTitles[mode]));
     click(fiveMinutesPracticeTitles[mode]); expect(status()).toBe('');
     expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות'));
-    click('לימוד דקות'); click(fiveMinutesPracticeTitles[mode]);
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('קפיצות של 5 דקות'));
+    click('קפיצות של 5 דקות'); click(fiveMinutesPracticeTitles[mode]);
     expect(container.textContent).toContain(`תרגיל 1 מתוך ${fiveMinutesExercises[mode].length}`);
     expect(status()).toBe('');
   });

@@ -21,7 +21,7 @@ function hands(hour: number, minute: number) {
   expect(container.querySelector('[data-hand="minute"]')?.getAttribute('transform')).toBe(minute ? `rotate(${minute * 6} 150 150)` : null);
 }
 const status = () => container.querySelector('[role="status"]')?.textContent;
-function open(mode: ExactMinutesPracticeMode) { click('לימוד דקות מדויקות'); click('הדוגמה הבאה'); click(exactMinutesPracticeTitles[mode]); }
+function open(mode: ExactMinutesPracticeMode) { click('צעדים של דקה אחת'); click('הדוגמה הבאה'); click(exactMinutesPracticeTitles[mode]); }
 
 describe('exact-minute practice', () => {
   it('meets the required fixed sequences, valid times and mixed exact-minute balance', () => {
@@ -135,7 +135,7 @@ describe('exact-minute practice', () => {
     click('חזרה ללימוד');hands(8,1);
     expect(document.activeElement).toBe(button(exactMinutesPracticeTitles[mode]));
     click(exactMinutesPracticeTitles[mode]);expect(status()).toBe('');click('חזרה לבית');
-    expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
+    expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
   });
   it('selects every minute, wraps in both directions and preserves earlier snapping', () => {
     open('setting');
@@ -202,8 +202,8 @@ describe('exact-minute practice', () => {
     expect(document.activeElement).toBe(button(exactMinutesPracticeTitles[mode]));
     click(exactMinutesPracticeTitles[mode]); expect(status()).toBe('');
     expect(container.querySelector('[aria-pressed="true"]')).toBeNull();
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
-    click('לימוד דקות מדויקות'); click(exactMinutesPracticeTitles[mode]);
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
+    click('צעדים של דקה אחת'); click(exactMinutesPracticeTitles[mode]);
     expect(container.textContent).toContain(`תרגיל 1 מתוך ${exactMinutesExercises[mode].length}`);
     expect(status()).toBe('');
   });

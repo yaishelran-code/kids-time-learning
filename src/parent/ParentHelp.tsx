@@ -77,12 +77,12 @@ export function PinForm({ onVerified }: { onVerified: () => void }) {
     {error && <p id="pin-error" role="alert">הקוד אינו נכון. בקשו עזרה ממבוגר ונסו שוב.</p>}
   </form>;
 }
-export function PracticePause({ topic, onLesson, onHome }: { topic: Topic; onLesson: () => void; onHome: () => void }) {
+export function PracticePause({ topic, onLesson, onHome, children }: { topic: Topic; onLesson: () => void; onHome: () => void; children?: ReactNode }) {
   const help = useParentHelp();
   return <main className="home" dir="rtl">
     <FocusHeading>בואו נעצור רגע</FocusHeading>
     <p>בואו נעצור רגע. כדאי לבקש עזרה מאמא, אבא או מבוגר שמלווה אותך.</p>
-    <p>הנושא: {topicNames[topic]}</p>
+    <p>הנושא: {topicNames[topic]}</p>{children}
     {help.blocked ? <p>כדי להתאושש מנתוני עזרת הורה שלא ניתן לקרוא, חזרו לבית והיכנסו לאזור ההורה.</p>
       : <PinForm onVerified={() => help.unlock(topic)} />}
     <nav className="lesson-controls" aria-label="חזרה">
@@ -107,6 +107,11 @@ export function ParentArea({ onHome }: { onHome: () => void }) {
     else if (previousConfirmation.current) resetButton.current?.focus();
     previousConfirmation.current = confirmation;
   }, [confirmation]);
+  useEffect(() => {
+    const back = () => { if (confirmation) { setConfirmation(null); setMessage(''); } else { setAuthenticated(false); onHome(); } };
+    window.addEventListener('popstate', back);
+    return () => window.removeEventListener('popstate', back);
+  }, [confirmation, onHome]);
   const paused = (Object.keys(topicNames) as Topic[]).filter(topic => help.state.mistakes[topic] >= 3);
   return <main className="home" dir="rtl">
     <FocusHeading>אזור הורה</FocusHeading>
@@ -126,8 +131,8 @@ export function ParentArea({ onHome }: { onHome: () => void }) {
         }}>אישור האיפוס</button>
         <button type="button" className="secondary-button" onClick={() => { setConfirmation(null); setMessage(''); }}>ביטול</button>
       </section> : <div className="lesson-controls">
-        <button ref={resetButton} type="button" className="secondary-button" onClick={() => { setConfirmation('rewards'); setMessage(''); }}>איפוס התגמולים והאוסף</button>
-        {help.blocked && <button type="button" className="secondary-button" onClick={() => { setConfirmation('recovery'); setMessage(''); }}>התאוששות נתוני עזרת הורה</button>}
+        <button ref={resetButton} type="button" className="secondary-button" onClick={() => { history.pushState({parentConfirmation:true},''); setConfirmation('rewards'); setMessage(''); }}>איפוס התגמולים והאוסף</button>
+        {help.blocked && <button type="button" className="secondary-button" onClick={() => { history.pushState({parentConfirmation:true},''); setConfirmation('recovery'); setMessage(''); }}>התאוששות נתוני עזרת הורה</button>}
       </div>}
       <p role="status" aria-live="polite">{message}</p>
     </>}

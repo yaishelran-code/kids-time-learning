@@ -1,3 +1,4 @@
+import { PracticeTools } from '../flow/PracticeTools';
 import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { clockTopic } from '../parent/state';
 import { usePracticeRewards } from '../rewards/Rewards';
@@ -76,8 +77,9 @@ export function FiveMinutesPractice({ mode, onLesson, onHome }: { mode: FiveMinu
     reward.restart();
     setIndex(0); setTime(initialTime(fiveMinutesExercises[mode][0], 0)); setSelected(null); setFeedback('idle'); setCompleted(false);
   }
-  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome}><PracticeTools meta={{ topic, index, completed: false, hour: target.hour, minute: target.minute }} /></PracticePause>;
   return <main className="home" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, hour: target.hour, minute: target.minute }} />
     <header>
       <h1 ref={heading} tabIndex={-1}>{completed ? completionTitles[mode] : fiveMinutesPracticeTitles[mode]}</h1>
       {!completed && <>

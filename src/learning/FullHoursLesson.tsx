@@ -1,3 +1,4 @@
+import { useLessonFlow } from '../flow/context';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { FullHoursReadingExercise } from './FullHoursReadingExercise';
@@ -5,6 +6,7 @@ import { FullHoursExercise } from './FullHoursExercise';
 import { examples, hourNames } from './examples';
 
 export function FullHoursLesson({ onHome }: { onHome: () => void }) {
+  const lessonFlow = useLessonFlow();
   const [exercise, setExercise] = useState<'setting' | 'reading' | null>(null);
   const [index, setIndex] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -35,8 +37,9 @@ export function FullHoursLesson({ onHome }: { onHome: () => void }) {
         <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
         <button className="start-button" type="button" onClick={() => setIndex((index + 1) % examples.length)}>{index === examples.length - 1 ? 'נלמד שוב' : 'הדוגמה הבאה'}</button>
       </nav>
-      <button className="start-button exercise-entry" type="button" onClick={() => setExercise('setting')}>נתרגל עם המחוג</button>
-      <button className="start-button exercise-entry" type="button" onClick={() => setExercise('reading')}>נתרגל קריאת שעון</button>
+      {index === examples.length - 1 && <p role="status">סיימנו את הדוגמאות! אפשר ללמוד שוב, לתרגל או לחזור לבית.</p>}
+      <button className="start-button exercise-entry" type="button" onClick={() => lessonFlow ? lessonFlow('setting') : setExercise('setting')}>נתרגל עם המחוג</button>
+      <button className="start-button exercise-entry" type="button" onClick={() => lessonFlow ? lessonFlow('reading') : setExercise('reading')}>נתרגל קריאת שעון</button>
       <button className="secondary-button home-button" type="button" onClick={onHome}>חזרה לבית</button>
     </main>
   );

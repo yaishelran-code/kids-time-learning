@@ -6,12 +6,13 @@ import { angleDelta, formatTime, minuteAngleFromPoint, minutesFromTime, timeFrom
 import { hourNames } from '../learning/examples';
 
 /** Each interaction mode keeps both hands tied to a single time. */
-export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, emphasizeMinuteTicks = false, highlightMinute = false, timeDescription }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 1 | 5 | 15 | 30; showMinuteLabels?: boolean; emphasizeMinuteTicks?: boolean; highlightMinute?: boolean; timeDescription?: string }) {
+export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, minuteStep = 30, showMinuteLabels = false, emphasizeMinuteTicks = false, highlightMinute = false, timeDescription, bothHands = false }: { hour?: number; minute?: number; onHourChange?: (hour: number) => void; onTimeChange?: (time: ClockTime) => void; minuteStep?: 1 | 5 | 15 | 30; showMinuteLabels?: boolean; emphasizeMinuteTicks?: boolean; highlightMinute?: boolean; timeDescription?: string; bothHands?: boolean }) {
   const titleId = useId();
   const draggingPointer = useRef<number | null>(null);
   const clock = useRef<SVGSVGElement>(null);
   const dragAngle = useRef<number | null>(null);
   const dragMinutes = useRef(0);
+  const activeHand = useRef<'hour' | 'minute'>('minute');
   const time = { hour, minute: minute as ClockTime['minute'] };
   const interactive = Boolean(onHourChange || onTimeChange);
   // Chromium touch gestures must be cancelled at the start of a valid drag.
@@ -33,7 +34,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
     const angle = pointAngle(event);
     if (angle === null) return;
     if (dragAngle.current !== null) {
-      dragMinutes.current += angleDelta(dragAngle.current, angle) / 6;
+      dragMinutes.current += angleDelta(dragAngle.current, angle) * (activeHand.current === 'hour' ? 2 : 1 / 6);
       onTimeChange?.(timeFromMinutes(dragMinutes.current, minuteStep));
     }
     dragAngle.current = angle;
@@ -92,7 +93,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
       <line data-hand="minute" transform={minute === 0 ? undefined : `rotate(${minute * 6} 150 150)`} x1="150" y1="150" x2="150" y2="60"
         stroke="#167d87" strokeWidth="8" strokeLinecap="round" />
       <circle cx="150" cy="150" r="9" fill="#243450" />
-      {onHourChange && !onTimeChange && <g className="hour-control" role="slider" tabIndex={0}
+      {((onHourChange && !onTimeChange) || (bothHands && onTimeChange)) && <g className="hour-control" role="slider" tabIndex={0}
         aria-label="מחוג השעות" aria-valuemin={1} aria-valuemax={12} aria-valuenow={hour}
         aria-valuetext={`השעה ${hourNames[hour % 12]}, ${hour}:00`} aria-orientation="horizontal"
         onPointerDown={event => {
@@ -101,7 +102,9 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
           event.currentTarget.focus();
           draggingPointer.current = event.pointerId;
           clock.current!.setPointerCapture(event.pointerId);
-          updateHour(event);
+          if (bothHands && onTimeChange) {
+            activeHand.current = 'hour'; dragAngle.current = pointAngle(event); dragMinutes.current = minutesFromTime(time);
+          } else updateHour(event);
         }}
         onKeyDown={event => {
           let next: number;
@@ -111,10 +114,12 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
           else if (event.key === 'End') next = 12;
           else return;
           event.preventDefault();
-          onHourChange(next);
+          if (bothHands && onTimeChange) onTimeChange({ hour: next, minute });
+          else onHourChange?.(next);
         }}>
-        <line x1="150" y1="150" x2="150" y2="78" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
-          stroke="transparent" strokeWidth="52" strokeLinecap="round" />
+        <line x1="150" y1={bothHands ? "100" : "150"} x2="150" y2="78" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
+          stroke="transparent" strokeWidth={bothHands ? 24 : 52} strokeLinecap="round" />
+        {bothHands && <circle cx="150" cy="78" r="28" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`} fill="transparent" />}
         <circle className="hour-grip" cx="150" cy="78" r="12" transform={`rotate(${(hour % 12) * 30 + minute * 0.5} 150 150)`}
           fill="#7357c8" stroke="#fff" strokeWidth="3" />
       </g>}
@@ -128,6 +133,7 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
           event.preventDefault();
           event.currentTarget.focus({ preventScroll: true });
           draggingPointer.current = event.pointerId;
+          activeHand.current = 'minute';
           dragAngle.current = angle;
           dragMinutes.current = minutesFromTime(time);
           clock.current!.setPointerCapture(event.pointerId);
@@ -142,9 +148,10 @@ export function AnalogClock({ hour = 7, minute = 0, onHourChange, onTimeChange, 
           event.preventDefault();
           onTimeChange(timeFromMinutes(next, minuteStep));
         }}>
-        <line x1="150" y1="150" x2="150" y2="60" transform={`rotate(${minute * 6} 150 150)`}
-          stroke="transparent" strokeWidth={minuteStep === 1 ? 60 : 52} strokeLinecap="round" />
-        <circle className="hour-grip" cx="150" cy="60" r="12" transform={`rotate(${minute * 6} 150 150)`}
+        <line x1="150" y1={bothHands ? "65" : "150"} x2="150" y2={bothHands ? "42" : "60"} transform={`rotate(${minute * 6} 150 150)`}
+          stroke="transparent" strokeWidth={bothHands ? 24 : minuteStep === 1 ? 60 : 52} strokeLinecap="round" />
+        {bothHands && <circle cx="150" cy="42" r="28" transform={`rotate(${minute * 6} 150 150)`} fill="transparent" />}
+        <circle className="hour-grip" cx="150" cy={bothHands ? "42" : "60"} r="12" transform={`rotate(${minute * 6} 150 150)`}
           fill="#167d87" stroke="#fff" strokeWidth="3" />
       </g>}
 

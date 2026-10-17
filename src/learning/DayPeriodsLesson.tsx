@@ -1,3 +1,4 @@
+import { useLessonFlow } from '../flow/context';
 import { useEffect, useRef, useState } from 'react';
 import { AnalogClock } from '../components/AnalogClock';
 import { formatTime } from './clockTime';
@@ -19,6 +20,7 @@ function ContextClock({ example }: { example: DayExample }) {
 }
 
 export function DayPeriodsLesson({ onHome }: { onHome: () => void }) {
+  const lessonFlow = useLessonFlow();
   const [index, setIndex] = useState(0);
   const [practice, setPractice] = useState<DayPracticeMode | null>(null);
   const previousPractice = useRef<DayPracticeMode | null>(null);
@@ -58,6 +60,7 @@ export function DayPeriodsLesson({ onHome }: { onHome: () => void }) {
       <button type="button" className="secondary-button" disabled={index === 0} onClick={() => setIndex(index - 1)}>הדוגמה הקודמת</button>
       <button type="button" className="start-button" disabled={index === dayExamples.length - 1} onClick={() => setIndex(index + 1)}>הדוגמה הבאה</button>
     </nav>
+      {index === dayExamples.length - 1 && <section className="lesson-end"><p role="status">סיימנו את הדוגמאות! אפשר ללמוד שוב, לתרגל או לחזור לבית.</p><button type="button" className="secondary-button" onClick={() => setIndex(0)}>נלמד שוב</button></section>}
     <section className="day-comparisons" aria-labelledby="day-comparisons-heading">
       <h2 id="day-comparisons-heading">אותם מחוגים, חלק אחר ביום</h2>
       <p>השעון לבדו לא אומר אם זו שעה בבוקר או בערב. צריך לדעת גם את חלק היום.</p>
@@ -69,7 +72,7 @@ export function DayPeriodsLesson({ onHome }: { onHome: () => void }) {
     </section>
     <nav className="lesson-controls exercise-navigation" aria-label="תרגול חלקי היום">
       {(Object.keys(dayPracticeTitles) as DayPracticeMode[]).map(mode => <button key={mode} type="button" className="secondary-button"
-        ref={element => { entries.current[mode] = element; }} onClick={() => setPractice(mode)}>{dayPracticeTitles[mode]}</button>)}
+        ref={element => { entries.current[mode] = element; }} onClick={() => lessonFlow ? lessonFlow(mode) : setPractice(mode)}>{dayPracticeTitles[mode]}</button>)}
     </nav>
     <button type="button" className="secondary-button home-button" onClick={onHome}>חזרה לבית</button>
   </main>;

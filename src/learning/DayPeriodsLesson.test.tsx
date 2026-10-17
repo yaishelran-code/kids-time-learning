@@ -90,7 +90,7 @@ describe('parts-of-day lesson', () => {
     click('חזרה לבית');
     expect(container.querySelector('h1')?.textContent).toBe('לומדים את השעה');
     expect(document.activeElement).toBe(button('לימוד חלקי היום'));
-    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'לימוד דקות', 'לימוד דקות מדויקות', 'כמה זמן עבר ונשאר?']) expect(button(entry)).toBeDefined();
+    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'קפיצות של 5 דקות', 'צעדים של דקה אחת', 'כמה זמן עבר ונשאר?']) expect(button(entry)).toBeDefined();
     click('לימוד חלקי היום'); expect(container.querySelector('.day-example h2')?.textContent).toBe('דוגמה 1 מתוך 10');
   });
 

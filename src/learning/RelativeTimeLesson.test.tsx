@@ -101,7 +101,7 @@ describe('relative-time lesson', () => {
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     expect(container.querySelector('main')?.getAttribute('dir')).toBe('rtl');
     click('חזרה לבית'); expect(document.activeElement).toBe(button('כמה זמן עבר ונשאר?'));
-    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'לימוד דקות', 'לימוד דקות מדויקות']) expect(button(entry)).toBeDefined();
+    for (const entry of ['התחל ללמוד', 'נלמד חצי שעה', 'לימוד רבע שעה', 'קפיצות של 5 דקות', 'צעדים של דקה אחת']) expect(button(entry)).toBeDefined();
     click('כמה זמן עבר ונשאר?'); expect(container.querySelector('h2')?.textContent).toContain('דוגמה 1 מתוך 12');
   });
   it('formats duration independently of clock time', () => {

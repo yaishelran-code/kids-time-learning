@@ -112,7 +112,7 @@ describe('full-hour reading exercise', () => {
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את תרגול קריאת השעון 🎉');
     expect(document.activeElement).toBe(container.querySelector('h1'));
     expect(container.querySelector('svg')).toBeNull();
-    expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד']);
+    expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד', 'חזרה לבית']);
     click('תרגלו שוב');
     checkQuestion(1);
     expect(answers().map(option => option.textContent)).toEqual(initialOptions);

@@ -1,3 +1,4 @@
+import { PracticeTools } from '../flow/PracticeTools';
 import { PracticePause, usePracticeHelp } from '../parent/ParentHelp';
 import { usePracticeRewards } from '../rewards/Rewards';
 import { useEffect, useRef, useState } from 'react';
@@ -22,8 +23,9 @@ export function DayPeriodsPractice({ mode, onLesson, onHome }: { mode: DayPracti
   const help = usePracticeHelp(topic);
   const comparing = question.kind === 'compare';
   function clear() { setSelected([]); setFeedback('idle'); }
-  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome} />;
+  if (help.paused && !completed) return <PracticePause topic={topic} onLesson={onLesson} onHome={onHome}><PracticeTools meta={{ topic, index, completed: false, kind: question.kind }} /></PracticePause>;
   return <main className="home day-practice" dir="rtl">
+      <PracticeTools meta={{ topic, index, completed, kind: question.kind }} />
     <header>
       <h1 ref={heading} tabIndex={-1}>{completed ? `כל הכבוד! סיימתם ${dayPracticeTitles[mode]} 🎉` : dayPracticeTitles[mode]}</h1>
       {!completed && <><p>תרגיל {index + 1} מתוך {questions.length}</p>

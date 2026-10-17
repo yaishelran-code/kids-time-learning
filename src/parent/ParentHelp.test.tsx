@@ -51,8 +51,8 @@ describe('practice integration', () => {
     ['full-setting', 'התחל ללמוד', 'נתרגל עם המחוג', 'full', false], ['full-reading', 'התחל ללמוד', 'נתרגל קריאת שעון', 'full', true],
     ['half-setting', 'נלמד חצי שעה', 'תרגול כיוון חצי שעה', 'half', false], ['half-reading', 'נלמד חצי שעה', 'תרגול קריאת חצי שעה', 'half', true], ['half-mixed', 'נלמד חצי שעה', 'תרגול משולב', 'full', true],
     ['quarter-setting', 'לימוד רבע שעה', 'תרגול כיוון רבעי שעות', 'quarter', false], ['quarter-reading', 'לימוד רבע שעה', 'תרגול קריאת רבעי שעות', 'quarter', false], ['quarter-mixed', 'לימוד רבע שעה', 'תרגול משולב — שעות שלמות, חצאים ורבעים', 'quarter', false],
-    ['five-setting', 'לימוד דקות', 'תרגול כיוון דקות', 'five', false], ['five-reading', 'לימוד דקות', 'תרגול קריאת דקות', 'five', false], ['five-mixed', 'לימוד דקות', 'תרגול משולב — כל כפולות ה־5', 'five', false],
-    ['exact-setting', 'לימוד דקות מדויקות', 'תרגול כיוון דקות מדויקות', 'exact', false], ['exact-reading', 'לימוד דקות מדויקות', 'תרגול קריאת דקות מדויקות', 'exact', false], ['exact-mixed', 'לימוד דקות מדויקות', 'תרגול משולב — כל הדקות', 'exact', false],
+    ['five-setting', 'קפיצות של 5 דקות', 'תרגול כיוון דקות', 'five', false], ['five-reading', 'קפיצות של 5 דקות', 'תרגול קריאת דקות', 'five', false], ['five-mixed', 'קפיצות של 5 דקות', 'תרגול משולב — כל כפולות ה־5', 'five', false],
+    ['exact-setting', 'צעדים של דקה אחת', 'תרגול כיוון דקות מדויקות', 'exact', false], ['exact-reading', 'צעדים של דקה אחת', 'תרגול קריאת דקות מדויקות', 'exact', false], ['exact-mixed', 'צעדים של דקה אחת', 'תרגול משולב — כל הדקות', 'exact', false],
     ['relative-elapsed', 'כמה זמן עבר ונשאר?', 'תרגול זמן שעבר', 'relative', false], ['relative-remaining', 'כמה זמן עבר ונשאר?', 'תרגול זמן שנותר', 'relative', false], ['relative-mixed', 'כמה זמן עבר ונשאר?', 'תרגול משולב — זמן שעבר ונשאר', 'relative', false],
     ['day-identify', 'לימוד חלקי היום', 'תרגול זיהוי חלק היום', 'day', false], ['day-compare', 'לימוד חלקי היום', 'תרגול אותה שעה, הקשר שונה', 'day', false], ['day-mixed', 'לימוד חלקי היום', 'תרגול משולב — חלקי היום', 'day', false],
   ];
@@ -72,8 +72,8 @@ describe('practice integration', () => {
   });
   it.each([
     ['quarter', 'לימוד רבע שעה', 'תרגול משולב — שעות שלמות, חצאים ורבעים', quarterExercises.mixed, [1]],
-    ['five', 'לימוד דקות', 'תרגול משולב — כל כפולות ה־5', fiveMinutesExercises.mixed, [1, -2, 4, -5, 7, -8, 10, -11]],
-    ['exact', 'לימוד דקות מדויקות', 'תרגול משולב — כל הדקות', exactMinutesExercises.mixed, [1, -2, 13, -17, 31, -43, 59, -61]],
+    ['five', 'קפיצות של 5 דקות', 'תרגול משולב — כל כפולות ה־5', fiveMinutesExercises.mixed, [1, -2, 4, -5, 7, -8, 10, -11]],
+    ['exact', 'צעדים של דקה אחת', 'תרגול משולב — כל הדקות', exactMinutesExercises.mixed, [1, -2, 13, -17, 31, -43, 59, -61]],
   ] as const)('classifies every %s mixed question, isolates success resets and preserves rewards', (_, home, entry, questions, offsets) => {
     const state = emptyParentState(); state.mistakes.day = 2; writeParentState(state); remount(); click(home); click(entry);
     questions.forEach((question, index) => {
@@ -135,7 +135,7 @@ describe('parent actions and save failures', () => {
   });
   it('protects corrupt parent data, blocks every topic, and recovers only after confirmed successful save', () => {
     localStorage.setItem(parentStorageKey, 'broken pauses'); const ledger = { ...emptyLedger(), stars: 10, points: 100, unlocked: ['spark'] }; writeLedger(ledger); localStorage.setItem(baselineStorageKey, 'baseline'); localStorage.setItem(activityStorageKey, 'activities'); remount();
-    openReading(); expect(container.querySelector('.reading-answers')).toBeNull(); click('חזרה ללימוד'); expect(container.querySelector('input')).toBeNull(); click('חזרה לבית'); click('לימוד דקות מדויקות'); click('תרגול כיוון דקות מדויקות'); expect(container.querySelector('[role="slider"]')).toBeNull(); click('חזרה לבית'); click('אזור הורה'); pin('1212'); click('התאוששות נתוני עזרת הורה'); click('ביטול'); expect(localStorage.getItem(parentStorageKey)).toBe('broken pauses'); click('התאוששות נתוני עזרת הורה');
+    openReading(); expect(container.querySelector('.reading-answers')).toBeNull(); click('חזרה ללימוד'); expect(container.querySelector('input')).toBeNull(); click('חזרה לבית'); click('צעדים של דקה אחת'); click('תרגול כיוון דקות מדויקות'); expect(container.querySelector('[role="slider"]')).toBeNull(); click('חזרה לבית'); click('אזור הורה'); pin('1212'); click('התאוששות נתוני עזרת הורה'); click('ביטול'); expect(localStorage.getItem(parentStorageKey)).toBe('broken pauses'); click('התאוששות נתוני עזרת הורה');
     const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); }); click('אישור האיפוס'); expect(localStorage.getItem(parentStorageKey)).toBe('broken pauses'); expect(container.textContent).toContain('המצב הקודם נשמר'); spy.mockRestore(); click('אישור האיפוס'); expect(readParentState()).toEqual({ state: emptyParentState(), blocked: false }); expect(readLedger().ledger).toEqual(ledger); expect(localStorage.getItem(baselineStorageKey)).toBe('baseline'); expect(localStorage.getItem(activityStorageKey)).toBe('activities'); click('חזרה לבית'); openReading(); click('1:00'); expect(readLedger().ledger.stars).toBe(11);
   });
   it('keeps an unsaved pause across navigation, retries storage without undoing it, then persists reload', () => {

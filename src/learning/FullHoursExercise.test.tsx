@@ -82,7 +82,7 @@ describe('full-hour exercise', () => {
     expect(container.querySelector('h1')?.textContent).toBe('כל הכבוד! סיימתם את התרגול 🎉');
     expect(container.querySelector('.reward-summary')?.textContent).toBe('ברצף הזה צברת 60 נקודות ו־6 כוכבים.');
     expect(document.activeElement).toBe(container.querySelector('h1'));
-    expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד']);
+    expect([...container.querySelectorAll('button')].map(button => button.textContent)).toEqual(['תרגלו שוב', 'חזרה ללימוד', 'חזרה לבית']);
     expect(button('התרגיל הבא')).toBeUndefined();
     expect(container.querySelector('[role="slider"]')).toBeNull();
     click('תרגלו שוב');

@@ -37,7 +37,7 @@ function hands(element: Element, hour: number, minute: number) {
 }
 describe('exact-minute lesson', () => {
   it('teaches all 15 fixed examples with synchronized hands, marker, wording, explanations and accessible navigation', () => {
-    click('לימוד דקות מדויקות');
+    click('צעדים של דקה אחת');
     expect(button('הדוגמה הקודמת').disabled).toBe(true);
     click('הדוגמה הקודמת');
     for (let index = 0; index < times.length; index++) {
@@ -67,12 +67,12 @@ describe('exact-minute lesson', () => {
     expect(container.textContent).toContain('חמישה צעדים של דקה');
     for (const caption of container.querySelectorAll('.clock-caption, figcaption')) expect(caption.textContent).not.toMatch(/לתשע|לאחת/);
     expect(container.querySelectorAll('.exercise-navigation button')).toHaveLength(3);
-    click('חזרה לבית'); expect(document.activeElement).toBe(button('לימוד דקות מדויקות'));
+    click('חזרה לבית'); expect(document.activeElement).toBe(button('צעדים של דקה אחת'));
     expect(container.querySelector('[data-minute-marker]')).toBeNull();
-    click('לימוד דקות מדויקות'); hands(container.querySelector('.clock-card')!, 8, 0);
+    click('צעדים של דקה אחת'); hands(container.querySelector('.clock-card')!, 8, 0);
   });
   it('compares single ticks and the hour rollover with precise hand positions', () => {
-    click('לימוד דקות מדויקות');
+    click('צעדים של דקה אחת');
     const groups = [...container.querySelectorAll('.minutes-comparison-grid')];
     expect(groups).toHaveLength(2);
     for (const [groupIndex, group] of groups.entries()) {
